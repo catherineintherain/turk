@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Türkçe Lab — тренажёр турецкого</title>
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --panel: #10141d;
+      --panel-2: #151a24;
+      --panel-3: #1b2230;
+      --border: #252d3a;
+      --text: #e6edf3;
+      --muted: #7d8998;
+      --cyan: #67d4e8;
+      --blue: #82aaff;
+      --green: #7bd88f;
+      --orange: #ffb454;
+      --pink: #ff6b9d;
+      --red: #ff657a;
+      --purple: #c099ff;
+      --shadow: 0 18px 55px rgba(0,0,0,.34);
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 78% -10%, rgba(103,212,232,.08), transparent 30rem),
+        var(--bg);
+      font-family: var(--sans);
+      font-size: 14px;
+    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr);
+      grid-template-rows: 46px minmax(0, 1fr) 28px;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .titlebar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr) auto;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(16,20,29,.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .brand {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      border-right: 1px solid var(--border);
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid rgba(103,212,232,.38);
+      border-radius: 6px;
+      color: var(--cyan);
+      background: rgba(103,212,232,.08);
+      font-size: 11px;
+    }
+    .tab {
+      height: 100%;
+      width: max-content;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      border-right: 1px solid var(--border);
+      border-top: 2px solid var(--cyan);
+      color: #c9d1d9;
+      background: var(--bg);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .tab-dot { color: var(--orange); }
+    .session-pill {
+      margin-right: 14px;
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .sidebar {
+      grid-row: 2;
+      border-right: 1px solid var(--border);
+      background: var(--panel);
+      overflow: auto;
+    }
+    .side-heading {
+      padding: 16px 16px 8px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .mode-btn {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 20px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 0;
+      border-left: 2px solid transparent;
+      color: #aab4c0;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+    .mode-btn:hover { background: rgba(255,255,255,.035); color: var(--text); }
+    .mode-btn.active {
+      border-left-color: var(--cyan);
+      color: var(--text);
+      background: rgba(103,212,232,.07);
+    }
+    .mode-btn.game-btn {
+      margin: 5px 10px 8px;
+      width: calc(100% - 20px);
+      border: 1px solid rgba(255,180,84,.3);
+      border-left: 2px solid var(--orange);
+      border-radius: 7px;
+      color: #ffd49a;
+      background: rgba(255,180,84,.07);
+    }
+    .mode-btn.game-btn:hover,
+    .mode-btn.game-btn.active {
+      border-color: var(--orange);
+      color: #fff0d7;
+      background: rgba(255,180,84,.15);
+    }
+    .mode-btn.game-btn .mode-icon,
+    .mode-btn.game-btn .mode-count { color: var(--orange); }
+    .mode-btn.ability-btn {
+      margin: 0 10px 8px;
+      width: calc(100% - 20px);
+      border: 1px solid rgba(192,153,255,.32);
+      border-left: 2px solid var(--purple);
+      border-radius: 7px;
+      color: #ddc7ff;
+      background: rgba(192,153,255,.07);
+    }
+    .mode-btn.ability-btn:hover,
+    .mode-btn.ability-btn.active {
+      border-color: var(--purple);
+      color: #f1e7ff;
+      background: rgba(192,153,255,.15);
+    }
+    .mode-btn.ability-btn .mode-icon,
+    .mode-btn.ability-btn .mode-count { color: var(--purple); }
+    .mode-icon { color: var(--blue); font-family: var(--mono); }
+    .mode-count { color: #667383; font-family: var(--mono); font-size: 10px; }
+    .side-rule { height: 1px; margin: 10px 14px; background: var(--border); }
+    .pronouns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 5px 14px 16px;
+    }
+    .person-btn {
+      padding: 7px 4px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .person-btn:hover, .person-btn.active {
+      border-color: rgba(130,170,255,.48);
+      color: var(--blue);
+      background: rgba(130,170,255,.07);
+    }
+    .side-note {
+      margin: 0 14px 18px;
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(0,0,0,.12);
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1.55;
+    }
+    .side-note b { color: var(--green); font-weight: 600; }
+
+    .workspace {
+      grid-row: 2;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(18px, 4vw, 52px);
+      overflow: auto;
+    }
+    .editor { width: min(880px, 100%); }
+    .editor-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .crumbs { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .crumbs .folder { color: var(--blue); }
+    .crumbs .file { color: var(--orange); }
+    .level { color: var(--green); white-space: nowrap; }
+
+    .code-card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(16,20,29,.96);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      height: 42px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--panel-2);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .window-dots { display: flex; gap: 7px; }
+    .window-dots i { width: 8px; height: 8px; border-radius: 50%; background: #394252; }
+    .window-dots i:first-child { background: var(--red); }
+    .window-dots i:nth-child(2) { background: var(--orange); }
+    .window-dots i:last-child { background: var(--green); }
+    .exercise-id { color: var(--purple); }
+
+    .code-body { display: grid; grid-template-columns: 52px minmax(0, 1fr); }
+    .gutter {
+      padding: 25px 14px 28px 0;
+      border-right: 1px solid rgba(37,45,58,.72);
+      color: #465161;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 2.05;
+      text-align: right;
+      user-select: none;
+    }
+    .task-pane { min-width: 0; padding: clamp(22px, 4vw, 40px); }
+    .comment {
+      color: #667383;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .comment .keyword { color: var(--pink); }
+    .prompt {
+      margin: 20px 0 24px;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 650;
+      letter-spacing: -.045em;
+      line-height: 1.08;
+      overflow-wrap: anywhere;
+      white-space: pre-line;
+    }
+    .prompt::after {
+      content: "_";
+      margin-left: 5px;
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-weight: 400;
+      animation: blink 1.05s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .prompt::after { animation: none; } }
+
+    .answer-wrap { position: relative; }
+    .answer-prefix {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--purple);
+      font-family: var(--mono);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    #answer {
+      width: 100%;
+      padding: 15px 46px 15px 37px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      background: #0b0e14;
+      caret-color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 16px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #answer::placeholder { color: #445061; }
+    #answer:focus { border-color: rgba(103,212,232,.65); box-shadow: 0 0 0 3px rgba(103,212,232,.08); outline: 0; }
+    #answer.correct { border-color: var(--green); box-shadow: 0 0 0 3px rgba(123,216,143,.08); }
+    #answer.wrong { border-color: var(--red); box-shadow: 0 0 0 3px rgba(255,101,122,.08); }
+    .input-status {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .feedback {
+      min-height: 45px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-left: 2px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,255,255,.018);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .feedback.good { border-left-color: var(--green); color: var(--green); }
+    .feedback.bad { border-left-color: var(--red); color: #ff91a0; }
+    .feedback.hint { border-left-color: var(--orange); color: var(--orange); }
+    .feedback strong { color: var(--text); font-weight: 600; }
+
+    .actions { display: flex; align-items: center; gap: 9px; margin-top: 18px; flex-wrap: wrap; }
+    .action-btn {
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--panel-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .action-btn:hover { border-color: #425066; background: #20293a; }
+    .action-btn.primary { border-color: rgba(103,212,232,.35); color: #071014; background: var(--cyan); }
+    .action-btn.primary:hover { background: #8ce3f1; }
+    .action-btn.ghost { color: var(--muted); background: transparent; }
+    .kbd { color: rgba(11,14,20,.58); font-size: 9px; margin-left: 7px; }
+    .ghost .kbd { color: #596577; }
+    .action-spacer { flex: 1; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .stat {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(16,20,29,.7);
+      font-family: var(--mono);
+    }
+    .stat-label { color: var(--muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .stat-value { margin-top: 4px; color: var(--text); font-size: 15px; }
+    .stat-value.cyan { color: var(--cyan); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.orange { color: var(--orange); }
+
+    .progress-track { height: 2px; background: #1d2430; }
+    .progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--cyan)); transition: width .25s ease; }
+
+    .statusbar {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: #8d99a8;
+      background: #151a24;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+    .status-group { display: flex; align-items: center; gap: 15px; }
+    .status-ok { color: var(--green); }
+    .mobile-menu { display: none; }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 46px auto minmax(0, 1fr) 28px; }
+      .titlebar { grid-template-columns: 1fr auto; }
+      .brand { border-right: 0; }
+      .tab { display: none; }
+      .session-pill { margin-right: 10px; }
+      .sidebar { grid-row: 2; border-right: 0; border-bottom: 1px solid var(--border); overflow: visible; }
+      .sidebar-inner { display: flex; align-items: center; gap: 6px; padding: 9px 11px; overflow-x: auto; scrollbar-width: none; }
+      .sidebar-inner::-webkit-scrollbar { display: none; }
+      .side-heading, .side-rule, .pronouns, .side-note { display: none; }
+      .mode-btn { width: auto; flex: 0 0 auto; display: flex; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; }
+      .mode-btn.active { border-color: rgba(103,212,232,.48); }
+      .mode-count { display: none; }
+      .workspace { grid-row: 3; padding: 16px 12px 24px; align-items: flex-start; }
+      .task-pane { padding: 22px 18px 24px; }
+      .code-body { grid-template-columns: 38px minmax(0, 1fr); }
+      .gutter { padding-right: 9px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .statusbar { grid-row: 4; }
+      .status-group:last-child span:not(:last-child) { display: none; }
+      .action-spacer { display: none; }
+      .actions .action-btn { flex: 1; }
+      .actions .ghost { flex: 0 0 auto; }
+      .kbd { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-mark">TR</span><span>türkçe.lab</span></div>
+      <div class="tab"><span class="tab-dot">●</span> practice.tr.ts</div>
+      <div class="session-pill">A1 · SESSION</div>
+    </header>
+
+    <aside class="sidebar" aria-label="Разделы тренажёра">
+      <div class="sidebar-inner">
+        <div class="side-heading">EXPLORER / УРОКИ</div>
+        <button class="mode-btn active" data-mode="all"><span class="mode-icon">◇</span><span>Все задания</span><span class="mode-count" id="count-all">0</span></button>
+        <button class="mode-btn game-btn" data-mode="game"><span class="mode-icon">★</span><span>Самая лучшая игра</span><span class="mode-count" id="count-game">∞</span></button>
+        <button class="mode-btn ability-btn" data-mode="ability"><span class="mode-icon">±</span><span>(Не) мочь / (Не) уметь</span><span class="mode-count" id="count-ability">∞</span></button>
+        <button class="mode-btn" data-mode="nominal"><span class="mode-icon">N</span><span>Именные формы</span><span class="mode-count" id="count-nominal">0</span></button>
+        <button class="mode-btn" data-mode="question"><span class="mode-icon">?</span><span>Вопросы</span><span class="mode-count" id="count-question">0</span></button>
+        <button class="mode-btn" data-mode="negative"><span class="mode-icon">!</span><span>Отрицания</span><span class="mode-count" id="count-negative">0</span></button>
+        <button class="mode-btn" data-mode="yor"><span class="mode-icon">Y</span><span>Настоящее -yor</span><span class="mode-count" id="count-yor">0</span></button>
+        <div class="side-rule"></div>
+        <div class="side-heading">МЕСТОИМЕНИЕ</div>
+        <div class="pronouns" id="pronouns"></div>
+        <div class="side-note">
+          <b>Enter</b> — проверить / дальше<br>
+          <b>Alt+H</b> — подсказка<br>
+          <b>Esc</b> — очистить поле
+        </div>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="editor">
+        <div class="editor-meta">
+          <div class="crumbs"><span class="folder">turkish</span> / <span id="crumb-mode">all</span> / <span class="file">exercise.ts</span></div>
+          <div class="level">● beginner</div>
+        </div>
+
+        <article class="code-card" aria-live="polite">
+          <div class="code-head">
+            <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span class="exercise-id" id="exercise-id">EX-001</span>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="progress"></div></div>
+          <div class="code-body">
+            <div class="gutter" aria-hidden="true">01<br>02<br>03<br>04<br>05<br>06<br>07<br>08</div>
+            <div class="task-pane">
+              <div class="comment"><span class="keyword">// TODO:</span> составь фразу по-турецки</div>
+              <div class="prompt" id="prompt">Я учитель</div>
+              <label class="comment" for="answer">const answer: Turkish =</label>
+              <div class="answer-wrap">
+                <span class="answer-prefix">›</span>
+                <input id="answer" type="text" inputmode="text" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="Ben öğretmenim" aria-describedby="feedback">
+                <span class="input-status" id="input-status">⌨</span>
+              </div>
+              <div class="feedback" id="feedback">Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.</div>
+              <div class="actions">
+                <button class="action-btn primary" id="check">Проверить <span class="kbd">ENTER</span></button>
+                <button class="action-btn" id="next">Следующее <span class="kbd">ENTER</span></button>
+                <span class="action-spacer"></span>
+                <button class="action-btn ghost" id="hint">Подсказка <span class="kbd">ALT+H</span></button>
+                <button class="action-btn ghost" id="shuffle" title="Перемешать задания">↻ Перемешать</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Задание</div><div class="stat-value cyan" id="position">1 / 1</div></div>
+          <div class="stat"><div class="stat-label">Верно</div><div class="stat-value green" id="correct-stat">0</div></div>
+          <div class="stat"><div class="stat-label">Серия</div><div class="stat-value orange" id="streak-stat">0</div></div>
+          <div class="stat"><div class="stat-label">Точность</div><div class="stat-value" id="accuracy-stat">—</div></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="statusbar">
+      <div class="status-group"><span class="status-ok">✓ grammar ready</span><span>UTF-8</span></div>
+      <div class="status-group"><span id="status-category">ALL</span><span id="status-person">ALL PERSONS</span><span>TR</span></div>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const people = [
+        { id: 'ben', tr: 'Ben', ru: 'Я' },
+        { id: 'sen', tr: 'Sen', ru: 'Ты' },
+        { id: 'o', tr: 'O', ru: 'Он/она' },
+        { id: 'biz', tr: 'Biz', ru: 'Мы' },
+        { id: 'siz', tr: 'Siz', ru: 'Вы' },
+        { id: 'onlar', tr: 'Onlar', ru: 'Они' }
+      ];
+
+      const vocabulary = [
+        ['öğretmen', 'учитель'],
+        ['doktor', 'врач'],
+        ['akıllı', 'умный'],
+        ['güçlü', 'сильный'],
+        ['öğrenci', 'студент'],
+        ['köpek', 'собака'],
+        ['kedi', 'кошка'],
+        ['araba', 'машина'],
+        ['değil', 'не / не является'],
+        ['aç', 'голодный'],
+        ['bu', 'это'],
+        ['ev', 'дом']
+      ];
+
+      const tasks = [];
+      let uid = 1;
+      const add = (ru, answer, person, tags, alternatives = [], note = '') => {
+        let taskNote = note;
+        if (!taskNote && tags.includes('nominal')) {
+          const lowerAnswer = answer.toLocaleLowerCase('tr-TR');
+          const words = vocabulary
+            .filter(([word]) => lowerAnswer.includes(word))
+            .sort((a, b) => lowerAnswer.indexOf(a[0]) - lowerAnswer.indexOf(b[0]))
+            .map(([word, translation]) => `${word} — ${translation}`);
+          taskNote = words.length ? `Слова: ${words.join('; ')}` : '';
+        }
+        tasks.push({ id: uid++, ru, answer, person, tags, answers: [answer, ...alternatives], note: taskNote });
+      };
+
+      // Именные сказуемые: утверждения, отрицания, вопросы и отрицательные вопросы.
+      const nominalRows = [
+        ['Я учитель', 'Ben öğretmenim', 'ben', ['nominal'], ['Öğretmenim']],
+        ['Ты врач', 'Sen doktorsun', 'sen', ['nominal'], ['Doktorsun']],
+        ['Он голодный', 'O aç', 'o', ['nominal'], ['Aç']],
+        ['Мы умные', 'Biz akıllıyız', 'biz', ['nominal'], ['Akıllıyız']],
+        ['Вы сильные', 'Siz güçlüsünüz', 'siz', ['nominal'], ['Güçlüsünüz']],
+        ['Они студенты', 'Onlar öğrenci', 'onlar', ['nominal'], ['Öğrenci', 'Onlar öğrenciler', 'Öğrenciler']],
+
+        ['Я не врач', 'Ben doktor değilim', 'ben', ['nominal','negative'], ['Doktor değilim']],
+        ['Ты не сильный', 'Sen güçlü değilsin', 'sen', ['nominal','negative'], ['Güçlü değilsin']],
+        ['Он не учитель', 'O öğretmen değil', 'o', ['nominal','negative'], ['Öğretmen değil']],
+        ['Мы не умные', 'Biz akıllı değiliz', 'biz', ['nominal','negative'], ['Akıllı değiliz']],
+        ['Вы не голодные', 'Siz aç değilsiniz', 'siz', ['nominal','negative'], ['Aç değilsiniz']],
+        ['Они не врачи', 'Onlar doktor değil', 'onlar', ['nominal','negative'], ['Doktor değil', 'Onlar doktor değiller', 'Doktor değiller']],
+
+        ['Я умный?', 'Ben akıllı mıyım?', 'ben', ['nominal','question'], ['Akıllı mıyım?']],
+        ['Ты врач?', 'Sen doktor musun?', 'sen', ['nominal','question'], ['Doktor musun?']],
+        ['Он голодный?', 'O aç mı?', 'o', ['nominal','question'], ['Aç mı?']],
+        ['Мы учителя?', 'Biz öğretmen miyiz?', 'biz', ['nominal','question'], ['Öğretmen miyiz?']],
+        ['Вы сильные?', 'Siz güçlü müsünüz?', 'siz', ['nominal','question'], ['Güçlü müsünüz?']],
+        ['Они студенты?', 'Onlar öğrenci mi?', 'onlar', ['nominal','question'], ['Öğrenci mi?', 'Onlar öğrenciler mi?', 'Öğrenciler mi?']],
+
+        ['Я не учитель?', 'Ben öğretmen değil miyim?', 'ben', ['nominal','negative','question'], ['Öğretmen değil miyim?']],
+        ['Ты не учитель?', 'Sen öğretmen değil misin?', 'sen', ['nominal','negative','question'], ['Öğretmen değil misin?']],
+        ['Он не врач?', 'O doktor değil mi?', 'o', ['nominal','negative','question'], ['Doktor değil mi?']],
+        ['Мы не сильные?', 'Biz güçlü değil miyiz?', 'biz', ['nominal','negative','question'], ['Güçlü değil miyiz?']],
+        ['Вы не умные?', 'Siz akıllı değil misiniz?', 'siz', ['nominal','negative','question'], ['Akıllı değil misiniz?']],
+        ['Они не голодные?', 'Onlar aç değil mi?', 'onlar', ['nominal','negative','question'], ['Aç değil mi?', 'Onlar aç değiller mi?', 'Aç değiller mi?']],
+
+        ['Это собака?', 'Bu köpek mi?', null, ['nominal','question'], ['Köpek mi?']],
+        ['Это не кошка?', 'Bu kedi değil mi?', null, ['nominal','negative','question'], ['Kedi değil mi?']],
+        ['Это дом', 'Bu ev', null, ['nominal'], []],
+        ['Это не машина', 'Bu araba değil', null, ['nominal','negative'], []]
+      ];
+      nominalRows.forEach(row => add(...row));
+
+      const verbs = [
+        { inf: 'konuşmak', pos: 'konuşuyor', neg: 'konuşmuyor', ru: ['говорю','говоришь','говорит','говорим','говорите','говорят'] },
+        { inf: 'oturmak', pos: 'oturuyor', neg: 'oturmuyor', ru: ['сижу','сидишь','сидит','сидим','сидите','сидят'] },
+        { inf: 'yatmak', pos: 'yatıyor', neg: 'yatmıyor', ru: ['лежу','лежишь','лежит','лежим','лежите','лежат'] },
+        { inf: 'okumak', pos: 'okuyor', neg: 'okumuyor', ru: ['читаю','читаешь','читает','читаем','читаете','читают'] },
+        { inf: 'yazmak', pos: 'yazıyor', neg: 'yazmıyor', ru: ['пишу','пишешь','пишет','пишем','пишете','пишут'] },
+        { inf: 'gitmek', pos: 'gidiyor', neg: 'gitmiyor', ru: ['иду','идёшь','идёт','идём','идёте','идут'] },
+        { inf: 'gelmek', pos: 'geliyor', neg: 'gelmiyor', ru: ['прихожу','приходишь','приходит','приходим','приходите','приходят'] },
+        { inf: 'çalışmak', pos: 'çalışıyor', neg: 'çalışmıyor', ru: ['работаю','работаешь','работает','работаем','работаете','работают'] },
+        { inf: 'yemek', pos: 'yiyor', neg: 'yemiyor', ru: ['ем','ешь','ест','едим','едите','едят'] },
+        { inf: 'içmek', pos: 'içiyor', neg: 'içmiyor', ru: ['пью','пьёшь','пьёт','пьём','пьёте','пьют'] },
+        { inf: 'dinlemek', pos: 'dinliyor', neg: 'dinlemiyor', ru: ['слушаю','слушаешь','слушает','слушаем','слушаете','слушают'] },
+        { inf: 'izlemek', pos: 'izliyor', neg: 'izlemiyor', ru: ['смотрю','смотришь','смотрит','смотрим','смотрите','смотрят'] },
+        { inf: 'uyumak', pos: 'uyuyor', neg: 'uyumuyor', ru: ['сплю','спишь','спит','спим','спите','спят'] },
+        { inf: 'yapmak', pos: 'yapıyor', neg: 'yapmıyor', ru: ['делаю','делаешь','делает','делаем','делаете','делают'] },
+        { inf: 'koşmak', pos: 'koşuyor', neg: 'koşmuyor', ru: ['бегу','бежишь','бежит','бежим','бежите','бегут'] },
+        { inf: 'beklemek', pos: 'bekliyor', neg: 'beklemiyor', ru: ['жду','ждёшь','ждёт','ждём','ждёте','ждут'] },
+        { inf: 'düşünmek', pos: 'düşünüyor', neg: 'düşünmüyor', ru: ['думаю','думаешь','думает','думаем','думаете','думают'] },
+        { inf: 'yüzmek', pos: 'yüzüyor', neg: 'yüzmüyor', ru: ['плаваю','плаваешь','плавает','плаваем','плаваете','плавают'] }
+      ];
+
+      const trEnding = ['um','sun','','uz','sunuz','lar'];
+      const qEnding = ['muyum','musun','mu','muyuz','musunuz','mı'];
+      const ruPronoun = ['Я','Ты','Он','Мы','Вы','Они'];
+      const gameVerbs = [
+        { inf: 'kurtarmak', ru: 'спасать', pos: 'kurtarıyor', neg: 'kurtarmıyor' },
+        { inf: 'buluşmak', ru: 'встречаться', pos: 'buluşuyor', neg: 'buluşmuyor' },
+        { inf: 'kıskanmak', ru: 'ревновать', pos: 'kıskanıyor', neg: 'kıskanmıyor' },
+        { inf: 'meşgul olmak', ru: 'быть занятым', pos: 'meşgul oluyor', neg: 'meşgul olmuyor' },
+        { inf: 'etkilenmek', ru: 'впечатляться', pos: 'etkileniyor', neg: 'etkilenmiyor' },
+        { inf: 'uygulanmak', ru: 'осуществляться', pos: 'uygulanıyor', neg: 'uygulanmıyor' },
+        { inf: 'gerçekleşmek', ru: 'сбываться', pos: 'gerçekleşiyor', neg: 'gerçekleşmiyor' },
+        { inf: 'giymek', ru: 'надевать', pos: 'giyiyor', neg: 'giymiyor' },
+        { inf: 'giydirmek', ru: 'одевать', pos: 'giydiriyor', neg: 'giydirmiyor' },
+        { inf: 'yaralamak', ru: 'ранить', pos: 'yaralıyor', neg: 'yaralamıyor' },
+        { inf: 'sakinleştirmek', ru: 'успокаивать', pos: 'sakinleştiriyor', neg: 'sakinleştirmiyor' },
+        { inf: 'seçmek', ru: 'выбирать', pos: 'seçiyor', neg: 'seçmiyor' },
+        { inf: 'paylaşmak', ru: 'поделиться', pos: 'paylaşıyor', neg: 'paylaşmıyor' }
+      ];
+      const gamePatterns = [
+        { label: 'утверждение', negative: false, question: false },
+        { label: 'отрицание', negative: true, question: false },
+        { label: 'вопрос', negative: false, question: true },
+        { label: 'вопрос с отрицанием', negative: true, question: true }
+      ];
+      const abilityVerbs = [
+        { inf: 'yatırmak', ru: 'укладывать', stem: 'yatır-', can: 'yatırabiliyor', cannot: 'yatıramıyor', canAffix: '-abil-', cannotAffix: '-ama-' },
+        { inf: 'titremek', ru: 'дрожать', stem: 'titre-', can: 'titreyebiliyor', cannot: 'titreyemiyor', canAffix: '-yebil-', cannotAffix: '-yeme-' },
+        { inf: 'sonuçlandırmak', ru: 'завершать', stem: 'sonuçlandır-', can: 'sonuçlandırabiliyor', cannot: 'sonuçlandıramıyor', canAffix: '-abil-', cannotAffix: '-ama-' },
+        { inf: 'saymak', ru: 'считать', stem: 'say-', can: 'sayabiliyor', cannot: 'sayamıyor', canAffix: '-abil-', cannotAffix: '-ama-' },
+        { inf: 'kiralamak', ru: 'сдавать в аренду', stem: 'kirala-', can: 'kiralayabiliyor', cannot: 'kiralayamıyor', canAffix: '-yabil-', cannotAffix: '-yama-' },
+        { inf: 'kapatmak', ru: 'закрывать', stem: 'kapat-', can: 'kapatabiliyor', cannot: 'kapatamıyor', canAffix: '-abil-', cannotAffix: '-ama-' },
+        { inf: 'iddialaşmak', ru: 'спорить', stem: 'iddialaş-', can: 'iddialaşabiliyor', cannot: 'iddialaşamıyor', canAffix: '-abil-', cannotAffix: '-ama-' },
+        { inf: 'hissetmek', ru: 'чувствовать', stem: 'hisset-', can: 'hissedebiliyor', cannot: 'hissedemiyor', canAffix: '-ebil-', cannotAffix: '-eme-', change: 'Перед гласным аффиксом t → d.' },
+        { inf: 'götürmek', ru: 'относить', stem: 'götür-', can: 'götürebiliyor', cannot: 'götüremiyor', canAffix: '-ebil-', cannotAffix: '-eme-' },
+        { inf: 'gelişmek', ru: 'развиваться', stem: 'geliş-', can: 'gelişebiliyor', cannot: 'gelişemiyor', canAffix: '-ebil-', cannotAffix: '-eme-' }
+      ];
+      const abilityPatterns = [
+        { label: 'мочь / уметь', key: 'can', affix: 'canAffix', formula: 'основа + -(y)Abil- + -iyor + личное окончание' },
+        { label: 'не мочь / не уметь', key: 'cannot', affix: 'cannotAffix', formula: 'основа + -(y)Ama- + -yor + личное окончание' }
+      ];
+
+      function withEnding(base, p) { return base + trEnding[p]; }
+      function statementForms(base, p) {
+        const full = `${people[p].tr} ${withEnding(base,p)}`;
+        const short = withEnding(base,p);
+        const answers = [short];
+        if (p === 5) answers.push(`${people[p].tr} ${base}`, base);
+        return [full, ...answers];
+      }
+      function questionForms(base, p) {
+        const verb = p === 5 ? base + 'lar' : base;
+        const full = `${people[p].tr} ${verb} ${qEnding[p]}?`;
+        const answers = [`${verb} ${qEnding[p]}?`];
+        if (p === 5) answers.push(`${people[p].tr} ${base} mu?`, `${base} mu?`);
+        return [full, ...answers];
+      }
+
+      // Опорные примеры из задания вынесены в набор буквально.
+      add('Я говорю', 'Ben konuşuyorum', 'ben', ['yor'], ['Konuşuyorum'], 'Инфинитив: konuşmak');
+      add('Мы не сидим', 'Biz oturmuyoruz', 'biz', ['yor','negative'], ['Oturmuyoruz'], 'Инфинитив: oturmak');
+      add('Ты не лежишь', 'Sen yatmıyorsun', 'sen', ['yor','negative'], ['Yatmıyorsun'], 'Инфинитив: yatmak');
+
+      // 108 заданий на -yor: каждый глагол встречается со всеми местоимениями.
+      verbs.forEach((verb, vi) => {
+        people.forEach((person, p) => {
+          const pattern = (vi + p) % 4; // утверждение / отрицание / вопрос / отрицательный вопрос
+          const isNegative = pattern === 1 || pattern === 3;
+          const isQuestion = pattern >= 2;
+          const base = isNegative ? verb.neg : verb.pos;
+          const ruVerb = (isNegative ? 'не ' : '') + verb.ru[p];
+          const ru = `${ruPronoun[p]} ${ruVerb}${isQuestion ? '?' : ''}`;
+          const forms = isQuestion ? questionForms(base,p) : statementForms(base,p);
+          const tags = ['yor'];
+          if (isNegative) tags.push('negative');
+          if (isQuestion) tags.push('question');
+          add(ru, forms[0], person.id, tags, forms.slice(1), `Инфинитив: ${verb.inf}`);
+        });
+      });
+
+      function createGameTask() {
+        const verb = gameVerbs[Math.floor(Math.random() * gameVerbs.length)];
+        const personIndex = Math.floor(Math.random() * people.length);
+        const pattern = gamePatterns[Math.floor(Math.random() * gamePatterns.length)];
+        const base = pattern.negative ? verb.neg : verb.pos;
+        const forms = pattern.question
+          ? questionForms(base, personIndex)
+          : statementForms(base, personIndex);
+        const person = people[personIndex];
+        return {
+          id: 'GAME',
+          game: true,
+          ru: `${verb.inf} — ${verb.ru}\n${person.tr} (${person.ru}) · ${pattern.label}`,
+          answer: forms[0],
+          answers: forms,
+          person: person.id,
+          tags: ['game'],
+          note: `Инфинитив: ${verb.inf} · ${pattern.label}`
+        };
+      }
+
+      function createAbilityTask() {
+        const verb = abilityVerbs[Math.floor(Math.random() * abilityVerbs.length)];
+        const personIndex = Math.floor(Math.random() * people.length);
+        const pattern = abilityPatterns[Math.floor(Math.random() * abilityPatterns.length)];
+        const person = people[personIndex];
+        const base = verb[pattern.key];
+        const forms = statementForms(base, personIndex);
+        const personalSuffix = trEnding[personIndex] ? `-${trEnding[personIndex]}` : 'без личного окончания';
+        const answerVerb = withEnding(base, personIndex);
+        const spellingNote = pattern.key === 'cannot'
+          ? 'Перед -yor конечная гласная отрицательной формы изменяется по гармонии.'
+          : '';
+        return {
+          id: 'ABILITY',
+          ability: true,
+          ru: `${verb.inf} — ${verb.ru}\n${person.tr} (${person.ru}) · ${pattern.label}`,
+          answer: forms[0],
+          answers: forms,
+          person: person.id,
+          tags: ['ability'],
+          note: `Схема: ${pattern.formula}. Разбор: ${verb.stem} + ${verb[pattern.affix]} + -yor + ${personalSuffix} → ${answerVerb}. ${spellingNote} ${verb.change || ''}`.trim()
+        };
+      }
+
+      const state = {
+        mode: 'all', person: 'all', pool: [], index: 0,
+        checked: false, attempts: 0, correct: 0, streak: 0, gameRound: 0, abilityRound: 0
+      };
+
+      const $ = selector => document.querySelector(selector);
+      const els = {
+        prompt: $('#prompt'), answer: $('#answer'), feedback: $('#feedback'),
+        check: $('#check'), next: $('#next'), hint: $('#hint'), shuffle: $('#shuffle'),
+        progress: $('#progress'), position: $('#position'), correct: $('#correct-stat'),
+        streak: $('#streak-stat'), accuracy: $('#accuracy-stat'), id: $('#exercise-id'),
+        status: $('#input-status'), crumb: $('#crumb-mode'), category: $('#status-category'),
+        person: $('#status-person'), pronouns: $('#pronouns')
+      };
+
+      function normalize(value) {
+        const latinKeyboard = { 'ç':'c', 'ğ':'g', 'ı':'i', 'ö':'o', 'ş':'s', 'ü':'u' };
+        return value
+          .toLocaleLowerCase('tr-TR')
+          .replace(/[çğıöşü]/g, letter => latinKeyboard[letter])
+          .trim()
+          .replace(/[“”"'’`]/g, '')
+          .replace(/[.!?]+$/g, '')
+          .replace(/\s+/g, ' ');
+      }
+
+      function current() { return state.pool[state.index]; }
+      function matchesMode(task) { return state.mode === 'all' || task.tags.includes(state.mode); }
+      function loadGameTask() {
+        state.gameRound++;
+        state.pool = [createGameTask()];
+        state.index = 0;
+        state.checked = false;
+        render();
+      }
+      function loadAbilityTask() {
+        state.abilityRound++;
+        state.pool = [createAbilityTask()];
+        state.index = 0;
+        state.checked = false;
+        render();
+      }
+      function rebuildPool(reset = true) {
+        if (state.mode === 'game') {
+          loadGameTask();
+          return;
+        }
+        if (state.mode === 'ability') {
+          loadAbilityTask();
+          return;
+        }
+        state.pool = tasks.filter(task => matchesMode(task) && (state.person === 'all' || task.person === state.person));
+        if (!state.pool.length) {
+          state.person = 'all';
+          document.querySelectorAll('.person-btn').forEach(b => b.classList.toggle('active', b.dataset.person === 'all'));
+          state.pool = tasks.filter(matchesMode);
+        }
+        if (reset) state.index = 0;
+        state.checked = false;
+        render();
+      }
+
+      function render() {
+        const task = current();
+        if (!task) return;
+        els.prompt.textContent = task.ru;
+        els.answer.value = '';
+        els.answer.placeholder = task.ability
+          ? 'Ben yatırabiliyorum'
+          : task.game
+            ? 'Ben kurtarıyorum'
+            : 'Ben öğretmenim';
+        els.answer.className = '';
+        els.status.textContent = '⌨';
+        els.feedback.className = 'feedback';
+        els.feedback.innerHTML = task.ability
+          ? 'Поставь глагол в форму <strong>могу / не могу</strong> в настоящем времени <strong>-yor</strong>. Местоимение можно не писать, турецкие буквы — заменять английскими.'
+          : task.game
+            ? 'Составь короткую фразу: только местоимение и глагол в форме <strong>-yor</strong>. Турецкие буквы можно заменять английскими.'
+            : 'Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.';
+        els.id.textContent = task.ability
+          ? `CAN-${String(state.abilityRound).padStart(3,'0')}`
+          : task.game
+            ? `GAME-${String(state.gameRound).padStart(3,'0')}`
+            : `EX-${String(task.id).padStart(3,'0')}`;
+        els.position.textContent = task.ability
+          ? `Раунд ${state.abilityRound}`
+          : task.game
+            ? `Раунд ${state.gameRound}`
+            : `${state.index + 1} / ${state.pool.length}`;
+        els.progress.style.width = task.game || task.ability ? '100%' : `${((state.index + 1) / state.pool.length) * 100}%`;
+        els.correct.textContent = state.correct;
+        els.streak.textContent = state.streak;
+        els.accuracy.textContent = state.attempts ? `${Math.round(state.correct / state.attempts * 100)}%` : '—';
+        state.checked = false;
+        requestAnimationFrame(() => els.answer.focus({ preventScroll: true }));
+      }
+
+      function check() {
+        const task = current();
+        const entered = normalize(els.answer.value);
+        if (!entered) {
+          els.feedback.className = 'feedback hint';
+          els.feedback.textContent = 'Сначала введи ответ.';
+          return;
+        }
+        if (state.checked) { next(); return; }
+        const ok = task.answers.some(answer => normalize(answer) === entered);
+        state.attempts++;
+        state.checked = true;
+        if (ok) {
+          state.correct++;
+          state.streak++;
+          els.answer.classList.add('correct');
+          els.status.textContent = '✓';
+          els.feedback.className = 'feedback good';
+          els.feedback.innerHTML = `Верно. <strong>${task.answer}</strong>${task.note ? ` · ${task.note}` : ''}`;
+        } else {
+          state.streak = 0;
+          els.answer.classList.add('wrong');
+          els.status.textContent = '×';
+          els.feedback.className = 'feedback bad';
+          els.feedback.innerHTML = `Правильный ответ: <strong>${task.answer}</strong>${task.note ? ` · ${task.note}` : ''}`;
+        }
+        els.correct.textContent = state.correct;
+        els.streak.textContent = state.streak;
+        els.accuracy.textContent = `${Math.round(state.correct / state.attempts * 100)}%`;
+      }
+
+      function next() {
+        if (state.mode === 'game') {
+          loadGameTask();
+          return;
+        }
+        if (state.mode === 'ability') {
+          loadAbilityTask();
+          return;
+        }
+        state.index = (state.index + 1) % state.pool.length;
+        render();
+      }
+
+      function showHint() {
+        const task = current();
+        const words = task.answer.replace(/[?!.]/g,'').split(' ');
+        const mask = words.map(word => word.length <= 2 ? word : word[0] + '·'.repeat(Math.min(word.length - 1, 7))).join(' ');
+        els.feedback.className = 'feedback hint';
+        els.feedback.textContent = task.note
+          ? `Подсказка: ${task.note} · ${mask}`
+          : `Подсказка: ${mask}`;
+        els.answer.focus();
+      }
+
+      function shuffle() {
+        if (state.mode === 'game') {
+          loadGameTask();
+          els.feedback.className = 'feedback hint';
+          els.feedback.textContent = 'Новая случайная пара готова.';
+          return;
+        }
+        if (state.mode === 'ability') {
+          loadAbilityTask();
+          els.feedback.className = 'feedback hint';
+          els.feedback.textContent = 'Новая случайная форма готова.';
+          return;
+        }
+        for (let i = state.pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.pool[i], state.pool[j]] = [state.pool[j], state.pool[i]];
+        }
+        state.index = 0;
+        render();
+        els.feedback.className = 'feedback hint';
+        els.feedback.textContent = 'Задания перемешаны.';
+      }
+
+      function setMode(mode) {
+        state.mode = mode;
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
+        els.crumb.textContent = names[mode];
+        els.category.textContent = mode === 'game' ? 'BEST GAME' : mode === 'ability' ? 'CAN / CANNOT' : mode.toUpperCase();
+        rebuildPool();
+      }
+
+      function buildPersonButtons() {
+        const options = [{ id: 'all', tr: 'Все' }, ...people];
+        options.forEach(person => {
+          const btn = document.createElement('button');
+          btn.className = `person-btn${person.id === 'all' ? ' active' : ''}`;
+          btn.dataset.person = person.id;
+          btn.textContent = person.tr;
+          btn.title = person.ru || 'Все местоимения';
+          btn.addEventListener('click', () => {
+            state.person = person.id;
+            document.querySelectorAll('.person-btn').forEach(b => b.classList.toggle('active', b === btn));
+            els.person.textContent = person.id === 'all' ? 'ALL PERSONS' : person.tr.toUpperCase();
+            rebuildPool();
+          });
+          els.pronouns.appendChild(btn);
+        });
+      }
+
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+      els.check.addEventListener('click', check);
+      els.next.addEventListener('click', next);
+      els.hint.addEventListener('click', showHint);
+      els.shuffle.addEventListener('click', shuffle);
+      els.answer.addEventListener('keydown', event => {
+        if (event.key === 'Enter') { event.preventDefault(); state.checked ? next() : check(); }
+        if (event.key === 'Escape') { els.answer.value = ''; els.answer.className = ''; els.status.textContent = '⌨'; }
+      });
+      document.addEventListener('keydown', event => {
+        if (event.altKey && (event.key === 'h' || event.key === 'H')) { event.preventDefault(); showHint(); }
+      });
+
+      buildPersonButtons();
+      ['all','nominal','question','negative','yor'].forEach(mode => {
+        const count = mode === 'all' ? tasks.length : tasks.filter(task => task.tags.includes(mode)).length;
+        $(`#count-${mode}`).textContent = count;
+      });
+      rebuildPool();
+    })();
+  </script>
+</body>
+</html>
