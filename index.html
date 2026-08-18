@@ -201,6 +201,23 @@
     }
     .mode-btn.possession-btn .mode-icon,
     .mode-btn.possession-btn .mode-count { color: var(--green); }
+    .mode-btn.possession-plural-btn {
+      margin: 0 10px 8px;
+      width: calc(100% - 20px);
+      border: 1px solid rgba(103,212,232,.32);
+      border-left: 2px solid var(--cyan);
+      border-radius: 7px;
+      color: #bdeef5;
+      background: rgba(103,212,232,.07);
+    }
+    .mode-btn.possession-plural-btn:hover,
+    .mode-btn.possession-plural-btn.active {
+      border-color: var(--cyan);
+      color: #e0faff;
+      background: rgba(103,212,232,.14);
+    }
+    .mode-btn.possession-plural-btn .mode-icon,
+    .mode-btn.possession-plural-btn .mode-count { color: var(--cyan); }
     .mode-icon { color: var(--blue); font-family: var(--mono); }
     .mode-count { color: #667383; font-family: var(--mono); font-size: 10px; }
     .side-rule { height: 1px; margin: 10px 14px; background: var(--border); }
@@ -483,7 +500,8 @@
       .mode-btn,
       .mode-btn.game-btn,
       .mode-btn.ability-btn,
-      .mode-btn.possession-btn {
+      .mode-btn.possession-btn,
+      .mode-btn.possession-plural-btn {
         width: 100%;
         min-width: 0;
         margin: 0;
@@ -573,6 +591,7 @@
         <button class="mode-btn game-btn" data-mode="game"><span class="mode-icon">★</span><span>Самая лучшая игра</span><span class="mode-count" id="count-game">∞</span></button>
         <button class="mode-btn ability-btn" data-mode="ability"><span class="mode-icon">±</span><span>(Не) мочь / (Не) уметь</span><span class="mode-count" id="count-ability">∞</span></button>
         <button class="mode-btn possession-btn" data-mode="possession"><span class="mode-icon">⌂</span><span>Принадлежность</span><span class="mode-count" id="count-possession">∞</span></button>
+        <button class="mode-btn possession-plural-btn" data-mode="possession-plural"><span class="mode-icon">⌂+</span><span>Принадлежность и мн. число</span><span class="mode-count" id="count-possession-plural">∞</span></button>
         <button class="mode-btn" data-mode="nominal"><span class="mode-icon">N</span><span>Именные формы</span><span class="mode-count" id="count-nominal">0</span></button>
         <button class="mode-btn" data-mode="question"><span class="mode-icon">?</span><span>Вопросы</span><span class="mode-count" id="count-question">0</span></button>
         <button class="mode-btn" data-mode="negative"><span class="mode-icon">!</span><span>Отрицания</span><span class="mode-count" id="count-negative">0</span></button>
@@ -869,6 +888,72 @@
         return { form: stem + suffixes[personIndex], suffix: `-${suffixes[personIndex]}`, changedStem: stem !== noun.tr };
       }
 
+      // Принадлежность с существительным во множественном числе.
+      // Поле plural задано у заимствований, нарушающих обычную гармонию гласных.
+      const pluralPossessionNouns = [
+        { tr: 'harf', ru: 'буква', ruPlural: 'буквы', plural: 'harfler' },
+        { tr: 'rol', ru: 'роль', ruPlural: 'роли', plural: 'roller' },
+        { tr: 'saat', ru: 'час', ruPlural: 'часы', plural: 'saatler' },
+        { tr: 'kalp', ru: 'сердце', ruPlural: 'сердца', plural: 'kalpler' },
+        { tr: 'hayal', ru: 'мечта', ruPlural: 'мечты', plural: 'hayaller' },
+        { tr: 'kelime', ru: 'слово', ruPlural: 'слова' },
+        { tr: 'borç', ru: 'долг', ruPlural: 'долги' },
+        { tr: 'kanat', ru: 'крыло', ruPlural: 'крылья' },
+        { tr: 'çocuk', ru: 'ребёнок', ruPlural: 'дети' },
+        { tr: 'renk', ru: 'цвет', ruPlural: 'цвета' },
+        { tr: 'et', ru: 'мясо', ruPlural: 'виды мяса' },
+        { tr: 'millet', ru: 'нация', ruPlural: 'нации' },
+        { tr: 'burun', ru: 'нос', ruPlural: 'носы' },
+        { tr: 'omuz', ru: 'плечо', ruPlural: 'плечи' },
+        { tr: 'boyun', ru: 'шея', ruPlural: 'шеи' },
+        { tr: 'ağız', ru: 'рот', ruPlural: 'рты' },
+        { tr: 'vakit', ru: 'время', ruPlural: 'времена' },
+        { tr: 'şehir', ru: 'город', ruPlural: 'города' },
+        { tr: 'göğüs', ru: 'грудь', ruPlural: 'груди' },
+        { tr: 'isim', ru: 'имя', ruPlural: 'имена' },
+        { tr: 'resim', ru: 'картина', ruPlural: 'картины' },
+        { tr: 'kemik', ru: 'кость', ruPlural: 'кости' },
+        { tr: 'saç', ru: 'волос', ruPlural: 'волосы' },
+        { tr: 'at', ru: 'лошадь', ruPlural: 'лошади' },
+
+        { tr: 'dakika', ru: 'минута', ruPlural: 'минуты' },
+        { tr: 'ev', ru: 'дом', ruPlural: 'дома' },
+        { tr: 'gül', ru: 'роза', ruPlural: 'розы' },
+        { tr: 'gün', ru: 'день', ruPlural: 'дни' },
+        { tr: 'ay', ru: 'месяц', ruPlural: 'месяцы' },
+        { tr: 'yıl', ru: 'год', ruPlural: 'годы' },
+        { tr: 'dil', ru: 'язык', ruPlural: 'языки' },
+        { tr: 'diş', ru: 'зуб', ruPlural: 'зубы' },
+        { tr: 'göz', ru: 'глаз', ruPlural: 'глаза' },
+        { tr: 'el', ru: 'рука', ruPlural: 'руки' },
+        { tr: 'kuş', ru: 'птица', ruPlural: 'птицы' },
+        { tr: 'taş', ru: 'камень', ruPlural: 'камни' },
+        { tr: 'ders', ru: 'урок', ruPlural: 'уроки' },
+        { tr: 'film', ru: 'фильм', ruPlural: 'фильмы' },
+        { tr: 'not', ru: 'заметка', ruPlural: 'заметки' },
+        { tr: 'plan', ru: 'план', ruPlural: 'планы' },
+        { tr: 'test', ru: 'тест', ruPlural: 'тесты' },
+        { tr: 'park', ru: 'парк', ruPlural: 'парки' },
+        { tr: 'şans', ru: 'шанс', ruPlural: 'шансы' },
+        { tr: 'telefon', ru: 'телефон', ruPlural: 'телефоны' }
+      ];
+
+      function pluralPossessiveForm(noun, personIndex) {
+        const pluralSuffix = 'aıou'.includes(lastVowel(noun.tr)) ? 'lar' : 'ler';
+        const plural = noun.plural || noun.tr + pluralSuffix;
+        const harmony = highHarmony(plural);
+        const suffixes = [
+          `${harmony}m`, `${harmony}n`, harmony,
+          `${harmony}m${harmony}z`, `${harmony}n${harmony}z`, harmony
+        ];
+        return {
+          plural,
+          pluralSuffix: `-${plural.slice(noun.tr.length)}`,
+          possessiveSuffix: `-${suffixes[personIndex]}`,
+          form: plural + suffixes[personIndex]
+        };
+      }
+
       function withEnding(base, p) { return base + trEnding[p]; }
       function statementForms(base, p) {
         const full = `${people[p].tr} ${withEnding(base,p)}`;
@@ -976,10 +1061,33 @@
         };
       }
 
+      function createPluralPossessionTask() {
+        const noun = pluralPossessionNouns[Math.floor(Math.random() * pluralPossessionNouns.length)];
+        const personIndex = state.person === 'all'
+          ? Math.floor(Math.random() * people.length)
+          : people.findIndex(person => person.id === state.person);
+        const owner = possessivePronouns[personIndex];
+        const built = pluralPossessiveForm(noun, personIndex);
+        const russianOwner = owner.alternate
+          ? (Math.random() < .5 ? 'Его' : 'Её')
+          : owner.ru.pl;
+        const fullAnswer = `${owner.tr} ${built.form}`;
+        return {
+          id: 'POSSESSION-PLURAL',
+          possessionPlural: true,
+          ru: `${russianOwner} ${noun.ruPlural}`,
+          answer: fullAnswer,
+          answers: [fullAnswer, built.form],
+          person: people[personIndex].id,
+          tags: ['possession-plural'],
+          note: `Именительный падеж: ${noun.tr} — ${noun.ru}. Множественное число: ${noun.tr} + ${built.pluralSuffix} → ${built.plural}. Притяжательный суффикс: ${built.possessiveSuffix} → ${built.form}.`
+        };
+      }
+
       const state = {
         mode: 'all', person: 'all', pool: [], index: 0,
         checked: false, attempts: 0, correct: 0, streak: 0,
-        gameRound: 0, abilityRound: 0, possessionRound: 0
+        gameRound: 0, abilityRound: 0, possessionRound: 0, pluralPossessionRound: 0
       };
 
       const $ = selector => document.querySelector(selector);
@@ -1026,6 +1134,13 @@
         state.checked = false;
         render();
       }
+      function loadPluralPossessionTask() {
+        state.pluralPossessionRound++;
+        state.pool = [createPluralPossessionTask()];
+        state.index = 0;
+        state.checked = false;
+        render();
+      }
       function rebuildPool(reset = true) {
         if (state.mode === 'game') {
           loadGameTask();
@@ -1037,6 +1152,10 @@
         }
         if (state.mode === 'possession') {
           loadPossessionTask();
+          return;
+        }
+        if (state.mode === 'possession-plural') {
+          loadPluralPossessionTask();
           return;
         }
         state.pool = tasks.filter(task => matchesMode(task) && (state.person === 'all' || task.person === state.person));
@@ -1055,38 +1174,46 @@
         if (!task) return;
         els.prompt.textContent = task.ru;
         els.answer.value = '';
-        els.answer.placeholder = task.possession
-          ? 'Benim takvimim'
-          : task.ability
-            ? 'Ben yatırabiliyorum'
-            : task.game
-              ? 'Ben kurtarıyorum'
-              : 'Ben öğretmenim';
+        els.answer.placeholder = task.possessionPlural
+          ? 'Bizim dakikalarımız'
+          : task.possession
+            ? 'Benim takvimim'
+            : task.ability
+              ? 'Ben yatırabiliyorum'
+              : task.game
+                ? 'Ben kurtarıyorum'
+                : 'Ben öğretmenim';
         els.answer.className = '';
         els.status.textContent = '⌨';
         els.feedback.className = 'feedback';
-        els.feedback.innerHTML = task.possession
-          ? 'Добавь правильный <strong>притяжательный суффикс</strong>. Можно ответить с местоимением или только существительным; турецкие буквы — заменять английскими.'
-          : task.ability
-            ? 'Поставь глагол в форму <strong>могу / не могу</strong> в настоящем времени <strong>-yor</strong>. Местоимение можно не писать, турецкие буквы — заменять английскими.'
-            : task.game
-              ? 'Составь короткую фразу: только местоимение и глагол в форме <strong>-yor</strong>. Турецкие буквы можно заменять английскими.'
-              : 'Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.';
-        els.id.textContent = task.possession
-          ? `POSS-${String(state.possessionRound).padStart(3,'0')}`
-          : task.ability
-            ? `CAN-${String(state.abilityRound).padStart(3,'0')}`
-            : task.game
-              ? `GAME-${String(state.gameRound).padStart(3,'0')}`
-              : `EX-${String(task.id).padStart(3,'0')}`;
-        els.position.textContent = task.possession
-          ? `Раунд ${state.possessionRound}`
-          : task.ability
-            ? `Раунд ${state.abilityRound}`
-            : task.game
-              ? `Раунд ${state.gameRound}`
-              : `${state.index + 1} / ${state.pool.length}`;
-        els.progress.style.width = task.game || task.ability || task.possession ? '100%' : `${((state.index + 1) / state.pool.length) * 100}%`;
+        els.feedback.innerHTML = task.possessionPlural
+          ? 'Сначала поставь существительное во <strong>множественное число</strong>, затем добавь <strong>притяжательный суффикс</strong>. Можно писать без турецких букв.'
+          : task.possession
+            ? 'Добавь правильный <strong>притяжательный суффикс</strong>. Можно ответить с местоимением или только существительным; турецкие буквы — заменять английскими.'
+            : task.ability
+              ? 'Поставь глагол в форму <strong>могу / не могу</strong> в настоящем времени <strong>-yor</strong>. Местоимение можно не писать, турецкие буквы — заменять английскими.'
+              : task.game
+                ? 'Составь короткую фразу: только местоимение и глагол в форме <strong>-yor</strong>. Турецкие буквы можно заменять английскими.'
+                : 'Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.';
+        els.id.textContent = task.possessionPlural
+          ? `POSS-PL-${String(state.pluralPossessionRound).padStart(3,'0')}`
+          : task.possession
+            ? `POSS-${String(state.possessionRound).padStart(3,'0')}`
+            : task.ability
+              ? `CAN-${String(state.abilityRound).padStart(3,'0')}`
+              : task.game
+                ? `GAME-${String(state.gameRound).padStart(3,'0')}`
+                : `EX-${String(task.id).padStart(3,'0')}`;
+        els.position.textContent = task.possessionPlural
+          ? `Раунд ${state.pluralPossessionRound}`
+          : task.possession
+            ? `Раунд ${state.possessionRound}`
+            : task.ability
+              ? `Раунд ${state.abilityRound}`
+              : task.game
+                ? `Раунд ${state.gameRound}`
+                : `${state.index + 1} / ${state.pool.length}`;
+        els.progress.style.width = task.game || task.ability || task.possession || task.possessionPlural ? '100%' : `${((state.index + 1) / state.pool.length) * 100}%`;
         els.correct.textContent = state.correct;
         els.streak.textContent = state.streak;
         els.accuracy.textContent = state.attempts ? `${Math.round(state.correct / state.attempts * 100)}%` : '—';
@@ -1138,6 +1265,10 @@
           loadPossessionTask();
           return;
         }
+        if (state.mode === 'possession-plural') {
+          loadPluralPossessionTask();
+          return;
+        }
         state.index = (state.index + 1) % state.pool.length;
         render();
       }
@@ -1172,6 +1303,12 @@
           els.feedback.textContent = 'Новое случайное сочетание готово.';
           return;
         }
+        if (state.mode === 'possession-plural') {
+          loadPluralPossessionTask();
+          els.feedback.className = 'feedback hint';
+          els.feedback.textContent = 'Новое сочетание во множественном числе готово.';
+          return;
+        }
         for (let i = state.pool.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [state.pool[i], state.pool[j]] = [state.pool[j], state.pool[i]];
@@ -1185,7 +1322,7 @@
       function setMode(mode) {
         state.mode = mode;
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
+        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
         els.crumb.textContent = names[mode];
         els.category.textContent = mode === 'game'
           ? 'BEST GAME'
@@ -1193,7 +1330,9 @@
             ? 'CAN / CANNOT'
             : mode === 'possession'
               ? 'POSSESSION'
-              : mode.toUpperCase();
+              : mode === 'possession-plural'
+                ? 'POSSESSION + PLURAL'
+                : mode.toUpperCase();
         rebuildPool();
       }
 
