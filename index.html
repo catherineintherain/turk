@@ -218,6 +218,23 @@
     }
     .mode-btn.possession-plural-btn .mode-icon,
     .mode-btn.possession-plural-btn .mode-count { color: var(--cyan); }
+    .mode-btn.textbook-possession-btn {
+      margin: 0 10px 8px;
+      width: calc(100% - 20px);
+      border: 1px solid rgba(255,107,157,.32);
+      border-left: 2px solid var(--pink);
+      border-radius: 7px;
+      color: #ffc0d5;
+      background: rgba(255,107,157,.07);
+    }
+    .mode-btn.textbook-possession-btn:hover,
+    .mode-btn.textbook-possession-btn.active {
+      border-color: var(--pink);
+      color: #ffe4ed;
+      background: rgba(255,107,157,.14);
+    }
+    .mode-btn.textbook-possession-btn .mode-icon,
+    .mode-btn.textbook-possession-btn .mode-count { color: var(--pink); }
     .mode-icon { color: var(--blue); font-family: var(--mono); }
     .mode-count { color: #667383; font-family: var(--mono); font-size: 10px; }
     .side-rule { height: 1px; margin: 10px 14px; background: var(--border); }
@@ -501,7 +518,8 @@
       .mode-btn.game-btn,
       .mode-btn.ability-btn,
       .mode-btn.possession-btn,
-      .mode-btn.possession-plural-btn {
+      .mode-btn.possession-plural-btn,
+      .mode-btn.textbook-possession-btn {
         width: 100%;
         min-width: 0;
         margin: 0;
@@ -592,6 +610,7 @@
         <button class="mode-btn ability-btn" data-mode="ability"><span class="mode-icon">±</span><span>(Не) мочь / (Не) уметь</span><span class="mode-count" id="count-ability">∞</span></button>
         <button class="mode-btn possession-btn" data-mode="possession"><span class="mode-icon">⌂</span><span>Принадлежность</span><span class="mode-count" id="count-possession">∞</span></button>
         <button class="mode-btn possession-plural-btn" data-mode="possession-plural"><span class="mode-icon">⌂+</span><span>Принадлежность и мн. число</span><span class="mode-count" id="count-possession-plural">∞</span></button>
+        <button class="mode-btn textbook-possession-btn" data-mode="possession-textbook"><span class="mode-icon">▤</span><span>Принадлежность. Предложения (учебник)</span><span class="mode-count" id="count-possession-textbook">40</span></button>
         <button class="mode-btn" data-mode="nominal"><span class="mode-icon">N</span><span>Именные формы</span><span class="mode-count" id="count-nominal">0</span></button>
         <button class="mode-btn" data-mode="question"><span class="mode-icon">?</span><span>Вопросы</span><span class="mode-count" id="count-question">0</span></button>
         <button class="mode-btn" data-mode="negative"><span class="mode-icon">!</span><span>Отрицания</span><span class="mode-count" id="count-negative">0</span></button>
@@ -625,8 +644,8 @@
             <div class="task-pane">
               <div class="comment"><span class="keyword">// TODO:</span> составь фразу по-турецки</div>
               <div class="prompt" id="prompt">Я учитель</div>
-              <label class="comment" for="answer">const answer: Turkish =</label>
-              <div class="answer-wrap">
+              <label class="comment" id="answer-label" for="answer">const answer: Turkish =</label>
+              <div class="answer-wrap" id="answer-wrap">
                 <span class="answer-prefix">›</span>
                 <input id="answer" type="text" inputmode="text" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="Ben öğretmenim" aria-describedby="feedback">
                 <span class="input-status" id="input-status">⌨</span>
@@ -954,6 +973,59 @@
         };
       }
 
+      const textbookPossessionRows = [
+        ['Мой телефон дорогой.', 'Benim telefonum pahalı.', 'ben'],
+        ['Твой телефон белый?', 'Senin telefonun beyaz mı?', 'sen'],
+        ['Его/её мама очень спокойная.', 'Onun annesi çok sakin.', 'o'],
+        ['Наша мама совсем не устаёт.', 'Bizim annemiz hiç yorulmuyor.', 'biz'],
+        ['Ваш руководитель спокойный?', 'Sizin müdürünüz sakin mi?', 'siz'],
+        ['Их руководитель очень весёлый.', 'Onların müdürü çok eğlenceli.', 'onlar'],
+        ['У меня болит голова.', 'Benim başım ağrıyor.', 'ben'],
+        ['У тебя болит голова?', 'Senin başın ağrıyor mu?', 'sen'],
+        ['У него/неё совсем не болит голова.', 'Onun başı hiç ağrımıyor.', 'o'],
+        ['Наша машина очень быстрая.', 'Bizim arabamız çok hızlı.', 'biz'],
+        ['Ваша машина белая?', 'Sizin arabanız beyaz mı?', 'siz'],
+        ['Их машина дорогая.', 'Onların arabası pahalı.', 'onlar'],
+        ['Какой твой адрес?', 'Senin adresin ne?', 'sen'],
+        ['Какой его/её адрес?', 'Onun adresi ne?', 'o'],
+        ['Какой наш адрес?', 'Bizim adresimiz ne?', 'biz'],
+        ['Моя куртка белая.', 'Benim ceketim beyaz.', 'ben'],
+        ['Твоя куртка дорогая?', 'Senin ceketin pahalı mı?', 'sen'],
+        ['Его/её куртка очень красивая.', 'Onun ceketi çok güzel.', 'o'],
+        ['Мой урок очень интересный/весёлый.', 'Benim dersim çok eğlenceli.', 'ben'],
+        ['Ваш урок весёлый?', 'Sizin dersiniz eğlenceli mi?', 'siz'],
+        ['Их урок совсем не интересный.', 'Onların dersi hiç eğlenceli değil.', 'onlar'],
+        ['Наш город очень красивый.', 'Bizim şehrimiz çok güzel.', 'biz'],
+        ['Ваш город большой?', 'Sizin şehriniz büyük mü?', 'siz'],
+        ['Их город очень красивый.', 'Onların şehri çok güzel.', 'onlar'],
+        ['Мой сын совсем не устаёт.', 'Benim oğlum hiç yorulmuyor.', 'ben'],
+        ['Твой сын устаёт?', 'Senin oğlun yoruluyor mu?', 'sen'],
+        ['Его/её сын очень быстро устаёт.', 'Onun oğlu çok hızlı yoruluyor.', 'o'],
+        ['Наш руководитель сейчас не устаёт.', 'Bizim müdürümüz şimdi yorulmuyor.', 'biz'],
+        ['Ваша мама сейчас не устаёт.', 'Sizin anneniz şimdi yorulmuyor.', 'siz'],
+        ['Их сын очень спокойный.', 'Onların oğlu çok sakin.', 'onlar'],
+        ['Твой телефон дорогой?', 'Senin telefonun pahalı mı?', 'sen'],
+        ['Где его/её мама?', 'Onun annesi nerede?', 'o'],
+        ['Наш руководитель очень спокойный.', 'Bizim müdürümüz çok sakin.', 'biz'],
+        ['Мой сын совсем не устаёт.', 'Benim oğlum hiç yorulmuyor.', 'ben'],
+        ['У вас болит голова?', 'Sizin başınız ağrıyor mu?', 'siz'],
+        ['Их машина очень быстрая.', 'Onların arabası çok hızlı.', 'onlar'],
+        ['Какой у вас адрес? / Ваш адрес какой?', 'Sizin adresiniz ne?', 'siz'],
+        ['Твоя куртка белого цвета?', 'Senin ceketin beyaz renk mi?', 'sen'],
+        ['Мой урок очень весёлый / интересный.', 'Benim dersim çok eğlenceli.', 'ben'],
+        ['Наш город очень красивый.', 'Bizim şehrimiz çok güzel.', 'biz']
+      ];
+      const textbookPossessionTasks = textbookPossessionRows.map(([ru, answer, person], index) => ({
+        id: `BOOK-${String(index + 1).padStart(3, '0')}`,
+        oral: true,
+        ru,
+        answer,
+        answers: [answer],
+        person,
+        tags: ['possession-textbook'],
+        note: ''
+      }));
+
       function withEnding(base, p) { return base + trEnding[p]; }
       function statementForms(base, p) {
         const full = `${people[p].tr} ${withEnding(base,p)}`;
@@ -1097,7 +1169,8 @@
         progress: $('#progress'), position: $('#position'), correct: $('#correct-stat'),
         streak: $('#streak-stat'), accuracy: $('#accuracy-stat'), id: $('#exercise-id'),
         status: $('#input-status'), crumb: $('#crumb-mode'), category: $('#status-category'),
-        person: $('#status-person'), pronouns: $('#pronouns')
+        person: $('#status-person'), pronouns: $('#pronouns'),
+        answerLabel: $('#answer-label'), answerWrap: $('#answer-wrap')
       };
 
       function normalize(value) {
@@ -1141,6 +1214,17 @@
         state.checked = false;
         render();
       }
+      function loadTextbookPossessionTasks(reset = true) {
+        state.pool = textbookPossessionTasks.filter(task => state.person === 'all' || task.person === state.person);
+        if (!state.pool.length) {
+          state.person = 'all';
+          document.querySelectorAll('.person-btn').forEach(button => button.classList.toggle('active', button.dataset.person === 'all'));
+          state.pool = textbookPossessionTasks.slice();
+        }
+        if (reset) state.index = 0;
+        state.checked = false;
+        render();
+      }
       function rebuildPool(reset = true) {
         if (state.mode === 'game') {
           loadGameTask();
@@ -1158,6 +1242,10 @@
           loadPluralPossessionTask();
           return;
         }
+        if (state.mode === 'possession-textbook') {
+          loadTextbookPossessionTasks(reset);
+          return;
+        }
         state.pool = tasks.filter(task => matchesMode(task) && (state.person === 'all' || task.person === state.person));
         if (!state.pool.length) {
           state.person = 'all';
@@ -1173,6 +1261,8 @@
         const task = current();
         if (!task) return;
         els.prompt.textContent = task.ru;
+        els.answerLabel.hidden = Boolean(task.oral);
+        els.answerWrap.hidden = Boolean(task.oral);
         els.answer.value = '';
         els.answer.placeholder = task.possessionPlural
           ? 'Bizim dakikalarımız'
@@ -1186,24 +1276,28 @@
         els.answer.className = '';
         els.status.textContent = '⌨';
         els.feedback.className = 'feedback';
-        els.feedback.innerHTML = task.possessionPlural
-          ? 'Сначала поставь существительное во <strong>множественное число</strong>, затем добавь <strong>притяжательный суффикс</strong>. Можно писать без турецких букв.'
-          : task.possession
-            ? 'Добавь правильный <strong>притяжательный суффикс</strong>. Можно ответить с местоимением или только существительным; турецкие буквы — заменять английскими.'
-            : task.ability
-              ? 'Поставь глагол в форму <strong>могу / не могу</strong> в настоящем времени <strong>-yor</strong>. Местоимение можно не писать, турецкие буквы — заменять английскими.'
-              : task.game
-                ? 'Составь короткую фразу: только местоимение и глагол в форме <strong>-yor</strong>. Турецкие буквы можно заменять английскими.'
-                : 'Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.';
-        els.id.textContent = task.possessionPlural
-          ? `POSS-PL-${String(state.pluralPossessionRound).padStart(3,'0')}`
-          : task.possession
-            ? `POSS-${String(state.possessionRound).padStart(3,'0')}`
-            : task.ability
-              ? `CAN-${String(state.abilityRound).padStart(3,'0')}`
-              : task.game
-                ? `GAME-${String(state.gameRound).padStart(3,'0')}`
-                : `EX-${String(task.id).padStart(3,'0')}`;
+        els.feedback.innerHTML = task.oral
+          ? 'Составь предложение <strong>устно</strong>, затем нажми <strong>«Проверить»</strong> — здесь появится правильный ответ.'
+          : task.possessionPlural
+            ? 'Сначала поставь существительное во <strong>множественное число</strong>, затем добавь <strong>притяжательный суффикс</strong>. Можно писать без турецких букв.'
+            : task.possession
+              ? 'Добавь правильный <strong>притяжательный суффикс</strong>. Можно ответить с местоимением или только существительным; турецкие буквы — заменять английскими.'
+              : task.ability
+                ? 'Поставь глагол в форму <strong>могу / не могу</strong> в настоящем времени <strong>-yor</strong>. Местоимение можно не писать, турецкие буквы — заменять английскими.'
+                : task.game
+                  ? 'Составь короткую фразу: только местоимение и глагол в форме <strong>-yor</strong>. Турецкие буквы можно заменять английскими.'
+                  : 'Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.';
+        els.id.textContent = task.oral
+          ? task.id
+          : task.possessionPlural
+            ? `POSS-PL-${String(state.pluralPossessionRound).padStart(3,'0')}`
+            : task.possession
+              ? `POSS-${String(state.possessionRound).padStart(3,'0')}`
+              : task.ability
+                ? `CAN-${String(state.abilityRound).padStart(3,'0')}`
+                : task.game
+                  ? `GAME-${String(state.gameRound).padStart(3,'0')}`
+                  : `EX-${String(task.id).padStart(3,'0')}`;
         els.position.textContent = task.possessionPlural
           ? `Раунд ${state.pluralPossessionRound}`
           : task.possession
@@ -1218,11 +1312,18 @@
         els.streak.textContent = state.streak;
         els.accuracy.textContent = state.attempts ? `${Math.round(state.correct / state.attempts * 100)}%` : '—';
         state.checked = false;
-        requestAnimationFrame(() => els.answer.focus({ preventScroll: true }));
+        if (!task.oral) requestAnimationFrame(() => els.answer.focus({ preventScroll: true }));
       }
 
       function check() {
         const task = current();
+        if (task.oral) {
+          if (state.checked) { next(); return; }
+          state.checked = true;
+          els.feedback.className = 'feedback good';
+          els.feedback.innerHTML = `Правильный ответ: <strong>${task.answer}</strong>`;
+          return;
+        }
         const entered = normalize(els.answer.value);
         if (!entered) {
           els.feedback.className = 'feedback hint';
@@ -1281,7 +1382,7 @@
         els.feedback.textContent = task.note
           ? `Подсказка: ${task.note} · ${mask}`
           : `Подсказка: ${mask}`;
-        els.answer.focus();
+        if (!task.oral) els.answer.focus();
       }
 
       function shuffle() {
@@ -1322,7 +1423,7 @@
       function setMode(mode) {
         state.mode = mode;
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
+        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
         els.crumb.textContent = names[mode];
         els.category.textContent = mode === 'game'
           ? 'BEST GAME'
@@ -1332,7 +1433,9 @@
               ? 'POSSESSION'
               : mode === 'possession-plural'
                 ? 'POSSESSION + PLURAL'
-                : mode.toUpperCase();
+                : mode === 'possession-textbook'
+                  ? 'POSSESSION · TEXTBOOK'
+                  : mode.toUpperCase();
         rebuildPool();
       }
 
