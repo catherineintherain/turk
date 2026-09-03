@@ -27,6 +27,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html { background: var(--bg); }
     body {
       margin: 0;
@@ -235,6 +236,23 @@
     }
     .mode-btn.textbook-possession-btn .mode-icon,
     .mode-btn.textbook-possession-btn .mode-count { color: var(--pink); }
+    .mode-btn.genitive-btn {
+      margin: 0 10px 8px;
+      width: calc(100% - 20px);
+      border: 1px solid rgba(255,180,84,.34);
+      border-left: 2px solid var(--orange);
+      border-radius: 7px;
+      color: #ffd49a;
+      background: rgba(255,180,84,.07);
+    }
+    .mode-btn.genitive-btn:hover,
+    .mode-btn.genitive-btn.active {
+      border-color: var(--orange);
+      color: #fff0d7;
+      background: rgba(255,180,84,.15);
+    }
+    .mode-btn.genitive-btn .mode-icon,
+    .mode-btn.genitive-btn .mode-count { color: var(--orange); }
     .mode-icon { color: var(--blue); font-family: var(--mono); }
     .mode-count { color: #667383; font-family: var(--mono); font-size: 10px; }
     .side-rule { height: 1px; margin: 10px 14px; background: var(--border); }
@@ -361,6 +379,11 @@
       font-weight: 400;
       animation: blink 1.05s steps(1) infinite;
     }
+  .prompt.compact {
+    font-size: clamp(16px, 2vw, 21px);
+    line-height: 1.35;
+    letter-spacing: 0;
+    }
     @keyframes blink { 50% { opacity: 0; } }
     @media (prefers-reduced-motion: reduce) { .prompt::after { animation: none; } }
 
@@ -432,6 +455,12 @@
     .action-btn:hover { border-color: #425066; background: #20293a; }
     .action-btn.primary { border-color: rgba(103,212,232,.35); color: #071014; background: var(--cyan); }
     .action-btn.primary:hover { background: #8ce3f1; }
+    .action-btn.owner-check {
+      border-color: rgba(192,153,255,.42);
+      color: #130c1e;
+      background: var(--purple);
+    }
+    .action-btn.owner-check:hover { background: #d1b4ff; }
     .action-btn.ghost { color: var(--muted); background: transparent; }
     .kbd { color: rgba(11,14,20,.58); font-size: 9px; margin-left: 7px; }
     .ghost .kbd { color: #596577; }
@@ -519,7 +548,8 @@
       .mode-btn.ability-btn,
       .mode-btn.possession-btn,
       .mode-btn.possession-plural-btn,
-      .mode-btn.textbook-possession-btn {
+      .mode-btn.textbook-possession-btn,
+      .mode-btn.genitive-btn {
         width: 100%;
         min-width: 0;
         margin: 0;
@@ -561,6 +591,7 @@
       .gutter { display: none; }
       .task-pane { padding: 18px 14px 20px; }
       .prompt { margin: 16px 0 20px; font-size: clamp(24px, 7.5vw, 34px); overflow-wrap: anywhere; }
+    .prompt.compact { font-size: clamp(15px, 4.1vw, 18px); line-height: 1.38; }
       .answer-wrap, #answer { min-width: 0; }
       .feedback { overflow-wrap: anywhere; }
       .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -611,6 +642,7 @@
         <button class="mode-btn possession-btn" data-mode="possession"><span class="mode-icon">⌂</span><span>Принадлежность</span><span class="mode-count" id="count-possession">∞</span></button>
         <button class="mode-btn possession-plural-btn" data-mode="possession-plural"><span class="mode-icon">⌂+</span><span>Принадлежность и мн. число</span><span class="mode-count" id="count-possession-plural">∞</span></button>
         <button class="mode-btn textbook-possession-btn" data-mode="possession-textbook"><span class="mode-icon">▤</span><span>Принадлежность. Предложения (учебник)</span><span class="mode-count" id="count-possession-textbook">40</span></button>
+        <button class="mode-btn genitive-btn" data-mode="genitive"><span class="mode-icon">G</span><span>Родит. падеж</span><span class="mode-count" id="count-genitive">66</span></button>
         <button class="mode-btn" data-mode="nominal"><span class="mode-icon">N</span><span>Именные формы</span><span class="mode-count" id="count-nominal">0</span></button>
         <button class="mode-btn" data-mode="question"><span class="mode-icon">?</span><span>Вопросы</span><span class="mode-count" id="count-question">0</span></button>
         <button class="mode-btn" data-mode="negative"><span class="mode-icon">!</span><span>Отрицания</span><span class="mode-count" id="count-negative">0</span></button>
@@ -651,12 +683,18 @@
                 <span class="input-status" id="input-status">⌨</span>
               </div>
               <div class="feedback" id="feedback">Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.</div>
-              <div class="actions">
+              <div class="actions" id="standard-actions">
                 <button class="action-btn primary" id="check">Проверить <span class="kbd">ENTER</span></button>
                 <button class="action-btn" id="next">Следующее <span class="kbd">ENTER</span></button>
                 <span class="action-spacer"></span>
                 <button class="action-btn ghost" id="hint">Подсказка <span class="kbd">ALT+H</span></button>
                 <button class="action-btn ghost" id="shuffle" title="Перемешать задания">↻ Перемешать</button>
+              </div>
+              <div class="actions" id="genitive-actions" hidden>
+                <button class="action-btn primary" id="check-genitive-2">Проверить 2 тип</button>
+                <button class="action-btn owner-check" id="check-genitive-owner">Проверить с владельцем</button>
+                <button class="action-btn" id="next-genitive">Следующее</button>
+                <button class="action-btn ghost" id="shuffle-genitive">↻ Перемешать</button>
               </div>
             </div>
           </div>
@@ -1026,6 +1064,122 @@
         note: ''
       }));
 
+      const genitiveCompoundRows = [
+        { first: 'telif', firstRu: 'авторство', second: 'hak', secondRu: 'право', possessBase: 'haklar', type2: 'telif hakları', ru: 'авторские права', gender: 'pl' },
+        { first: 'üniversite', firstRu: 'университет', second: 'diploma', secondRu: 'диплом', type2: 'üniversite diploması', ru: 'диплом университета', gender: 'm' },
+        { first: 'ifade', firstRu: 'выражение', second: 'alan', secondRu: 'область / поле', type2: 'ifade alanı', ru: 'поле выражения', gender: 'n' },
+        { first: 'eğitim', firstRu: 'образование', second: 'program', secondRu: 'программа', type2: 'eğitim programı', ru: 'образовательная программа', gender: 'f' },
+        { first: 'renk', firstRu: 'цвет', second: 'psikoloji', secondRu: 'психология', type2: 'renk psikolojisi', ru: 'психология цвета', gender: 'f' },
+        { first: 'ses', firstRu: 'звук', second: 'sentez', secondRu: 'синтез', type2: 'ses sentezi', ru: 'синтез звука', gender: 'm' },
+        { first: 'proje', firstRu: 'проект', second: 'yönetim', secondRu: 'управление', type2: 'proje yönetimi', ru: 'управление проектом', gender: 'n' },
+        { first: 'bilgi', firstRu: 'информация', second: 'kaynak', secondRu: 'источник', possessBase: 'kaynaklar', type2: 'bilgi kaynakları', ru: 'источники информации', gender: 'pl' },
+        { first: 'uygulama', firstRu: 'приложение / применение', second: 'video', secondRu: 'видео', type2: 'uygulama videosu', ru: 'видео приложения', gender: 'n' },
+        { first: 'sahne', firstRu: 'сцена', second: 'ışık', secondRu: 'свет', stem: 'ışığ', type2: 'sahne ışığı', ru: 'сценический свет', gender: 'm' },
+        { first: 'kostüm', firstRu: 'костюм', second: 'tasarım', secondRu: 'дизайн', type2: 'kostüm tasarımı', ru: 'дизайн костюмов', gender: 'm' },
+        { first: 'oyun', firstRu: 'пьеса / игра', second: 'metin', secondRu: 'текст', stem: 'metn', type2: 'oyun metni', ru: 'текст пьесы', gender: 'm' },
+        { first: 'tiyatro', firstRu: 'театр', second: 'oyun', secondRu: 'пьеса / постановка', type2: 'tiyatro oyunu', ru: 'театральная постановка', gender: 'f' },
+        { first: 'seyirci', firstRu: 'зритель', second: 'salon', secondRu: 'зал', type2: 'seyirci salonu', ru: 'зрительный зал', gender: 'm' },
+        { first: 'oyuncu', firstRu: 'актёр', second: 'kadro', secondRu: 'состав', type2: 'oyuncu kadrosu', ru: 'актёрский состав', gender: 'm' },
+        { first: 'tiyatro', firstRu: 'театр', second: 'festival', secondRu: 'фестиваль', harmony: 'i', type2: 'tiyatro festivali', ru: 'театральный фестиваль', gender: 'm' },
+        { first: 'bilet', firstRu: 'билет', second: 'gişe', secondRu: 'касса', type2: 'bilet gişesi', ru: 'билетная касса', gender: 'f' },
+        { first: 'yazılım', firstRu: 'программное обеспечение', second: 'mimari', secondRu: 'архитектура', type2: 'yazılım mimarisi', ru: 'архитектура ПО', gender: 'f' },
+        { first: 'veri', firstRu: 'данные', second: 'taban', secondRu: 'основа / база', type2: 'veri tabanı', ru: 'база данных', gender: 'f' },
+        { first: 'proje', firstRu: 'проект', second: 'yönetim', secondRu: 'управление', type2: 'proje yönetimi', ru: 'управление проектом', gender: 'n' },
+        { first: 'ürün', firstRu: 'продукт', second: 'geliştirme', secondRu: 'разработка', type2NoPoss: true, type2: 'ürün geliştirme', ru: 'разработка продукта', gender: 'f' },
+        { first: 'kullanıcı', firstRu: 'пользователь', second: 'arayüz', secondRu: 'интерфейс', type2: 'kullanıcı arayüzü', ru: 'пользовательский интерфейс', gender: 'm' },
+        { first: 'test', firstRu: 'тест', second: 'senaryo', secondRu: 'сценарий', type2: 'test senaryosu', ru: 'тестовый сценарий', gender: 'm' },
+        { first: 'test', firstRu: 'тест', second: 'ortam', secondRu: 'среда', type2: 'test ortamı', ru: 'тестовая среда', gender: 'f' },
+        { first: 'iş', firstRu: 'работа', second: 'akış', secondRu: 'поток', type2: 'iş akışı', ru: 'рабочий процесс', gender: 'm' },
+        { first: 'sistem', firstRu: 'система', second: 'hata', secondRu: 'ошибка', type2: 'sistem hatası', ru: 'системная ошибка', gender: 'f' },
+        { first: 'proje', firstRu: 'проект', second: 'ekip', secondRu: 'команда', stem: 'ekib', type2: 'proje ekibi', ru: 'проектная команда', gender: 'f' },
+        { first: 'domates', firstRu: 'помидор', second: 'çorba', secondRu: 'суп', type2: 'domates çorbası', ru: 'томатный суп', gender: 'm' },
+        { first: 'mercimek', firstRu: 'чечевица', second: 'çorba', secondRu: 'суп', type2: 'mercimek çorbası', ru: 'чечевичный суп', gender: 'm' },
+        { first: 'elma', firstRu: 'яблоко', second: 'su', secondRu: 'вода / сок', specialSu: true, type2: 'elma suyu', ru: 'яблочный сок', gender: 'm' },
+        { first: 'portakal', firstRu: 'апельсин', second: 'su', secondRu: 'вода / сок', specialSu: true, type2: 'portakal suyu', ru: 'апельсиновый сок', gender: 'm' },
+        { first: 'zeytin', firstRu: 'оливка', second: 'yağ', secondRu: 'масло', concat: true, type2: 'zeytinyağı', ru: 'оливковое масло', gender: 'n' },
+        { first: 'limon', firstRu: 'лимон', second: 'kabuk', secondRu: 'кожура', stem: 'kabuğ', type2: 'limon kabuğu', ru: 'лимонная цедра / кожура лимона', gender: 'f' },
+        { first: 'tavuk', firstRu: 'курица', second: 'su', secondRu: 'вода / бульон', specialSu: true, type2: 'tavuk suyu', ru: 'куриный бульон', gender: 'm' },
+        { first: 'et', firstRu: 'мясо', second: 'su', secondRu: 'вода / бульон', specialSu: true, type2: 'et suyu', ru: 'мясной бульон', gender: 'm' },
+        { first: 'kahve', firstRu: 'кофе', second: 'fincan', secondRu: 'чашка', type2: 'kahve fincanı', ru: 'кофейная чашка', gender: 'f' },
+        { first: 'çay', firstRu: 'чай', second: 'bardak', secondRu: 'стакан', stem: 'bardağ', type2: 'çay bardağı', ru: 'стакан для чая', gender: 'm' },
+        { first: 'yemek', firstRu: 'блюдо / еда', second: 'tarif', secondRu: 'рецепт', type2: 'yemek tarifi', ru: 'рецепт блюда', gender: 'm' },
+        { first: 'mutfak', firstRu: 'кухня', second: 'bıçak', secondRu: 'нож', stem: 'bıçağ', type2: 'mutfak bıçağı', ru: 'кухонный нож', gender: 'm' },
+        { first: 'salata', firstRu: 'салат', second: 'sos', secondRu: 'соус', type2: 'salata sosu', ru: 'соус для салата', gender: 'm' },
+        { first: 'ekmek', firstRu: 'хлеб', second: 'hamur', secondRu: 'тесто', type2: 'ekmek hamuru', ru: 'тесто для хлеба', gender: 'n' },
+        { first: 'pasta', firstRu: 'торт', second: 'krema', secondRu: 'крем', type2: 'pasta kreması', ru: 'крем для торта', gender: 'm' },
+        { first: 'pirinç', firstRu: 'рис', second: 'pilav', secondRu: 'плов', type2: 'pirinç pilavı', ru: 'рисовый плов', gender: 'm' },
+        { first: 'sebze', firstRu: 'овощ', second: 'yemek', secondRu: 'блюдо / еда', stem: 'yemeğ', type2: 'sebze yemeği', ru: 'овощное блюдо', gender: 'n' },
+        { first: 'meyve', firstRu: 'фрукт', second: 'salata', secondRu: 'салат', type2: 'meyve salatası', ru: 'фруктовый салат', gender: 'm' },
+        { first: 'yağmur', firstRu: 'дождь', second: 'damla', secondRu: 'капля', type2: 'yağmur damlası', ru: 'капля дождя', gender: 'f' },
+        { first: 'kar', firstRu: 'снег', second: 'fırtına', secondRu: 'буря', type2: 'kar fırtınası', ru: 'снежная буря', gender: 'f' },
+        { first: 'rüzgâr', firstRu: 'ветер', second: 'hız', secondRu: 'скорость', type2: 'rüzgâr hızı', ru: 'скорость ветра', gender: 'f' },
+        { first: 'deniz', firstRu: 'море', second: 'dalga', secondRu: 'волна', type2: 'deniz dalgası', ru: 'морская волна', gender: 'f' },
+        { first: 'güneş', firstRu: 'солнце', second: 'ışık', secondRu: 'свет', stem: 'ışığ', type2: 'güneş ışığı', ru: 'солнечный свет', gender: 'm' },
+        { first: 'ay', firstRu: 'луна', second: 'ışık', secondRu: 'свет', stem: 'ışığ', type2: 'ay ışığı', ru: 'лунный свет', gender: 'm' },
+        { first: 'hava', firstRu: 'воздух / погода', second: 'sıcaklık', secondRu: 'температура', stem: 'sıcaklığ', type2: 'hava sıcaklığı', ru: 'температура воздуха', gender: 'f' },
+        { first: 'hava', firstRu: 'воздух', second: 'basınç', secondRu: 'давление', stem: 'basınc', type2: 'hava basıncı', ru: 'атмосферное давление', gender: 'n' },
+        { first: 'su', firstRu: 'вода', second: 'seviye', secondRu: 'уровень', type2: 'su seviyesi', ru: 'уровень воды', gender: 'm' },
+        { first: 'deniz', firstRu: 'море', second: 'seviye', secondRu: 'уровень', type2: 'deniz seviyesi', ru: 'уровень моря', gender: 'm' },
+        { first: 'orman', firstRu: 'лес', second: 'yangın', secondRu: 'пожар', type2: 'orman yangını', ru: 'лесной пожар', gender: 'm' },
+        { first: 'deprem', firstRu: 'землетрясение', second: 'dalga', secondRu: 'волна', type2: 'deprem dalgası', ru: 'сейсмическая волна', gender: 'f' },
+        { first: 'toprak', firstRu: 'земля / почва', second: 'kayma', secondRu: 'скольжение', type2: 'toprak kayması', ru: 'оползень', gender: 'm' },
+        { first: 'gök', firstRu: 'небо', second: 'gürültü', secondRu: 'грохот / шум', type2: 'gök gürültüsü', ru: 'гром', gender: 'm' },
+        { first: 'şimşek', firstRu: 'молния', second: 'ışık', secondRu: 'свет', stem: 'ışığ', type2: 'şimşek ışığı', ru: 'свет молнии', gender: 'm' },
+        { first: 'buz', firstRu: 'лёд', second: 'tabaka', secondRu: 'слой', type2: 'buz tabakası', ru: 'слой льда', gender: 'm' },
+        { first: 'nehir', firstRu: 'река', second: 'yatak', secondRu: 'русло / ложе', stem: 'yatağ', type2: 'nehir yatağı', ru: 'русло реки', gender: 'n' },
+        { first: 'kış', firstRu: 'зима', second: 'mont', secondRu: 'куртка / пальто', type2: 'kış montu', ru: 'зимняя куртка / зимнее пальто', gender: 'f' },
+        { first: 'spor', firstRu: 'спорт', second: 'ayakkabı', secondRu: 'обувь', type2: 'spor ayakkabısı', ru: 'спортивная обувь / кроссовки', gender: 'pl' },
+        { first: 'gece', firstRu: 'ночь', second: 'elbise', secondRu: 'платье', type2: 'gece elbisesi', ru: 'вечернее платье', gender: 'n' },
+        { first: 'yağmur', firstRu: 'дождь', second: 'mont', secondRu: 'куртка / пальто', type2: 'yağmur montu', ru: 'дождевик / непромокаемая куртка', gender: 'm' }
+      ];
+
+      const genitiveOwners = [
+        { tr: 'benim', personIndex: 0, ru: { m: 'Мой', f: 'Моя', n: 'Моё', pl: 'Мои' } },
+        { tr: 'onun', personIndex: 2, ru: { m: 'Его/её', f: 'Его/её', n: 'Его/её', pl: 'Его/её' } },
+        { tr: 'bizim', personIndex: 3, ru: { m: 'Наш', f: 'Наша', n: 'Наше', pl: 'Наши' } },
+        { tr: 'sizin', personIndex: 4, ru: { m: 'Ваш', f: 'Ваша', n: 'Ваше', pl: 'Ваши' } },
+        { tr: 'onların', personIndex: 2, ru: { m: 'Их', f: 'Их', n: 'Их', pl: 'Их' } }
+      ];
+
+      function compoundPossessiveNoun(entry, personIndex) {
+        if (entry.specialSu) {
+          const forms = ['suyum', 'suyun', 'suyu', 'suyumuz', 'suyunuz'];
+          return forms[personIndex];
+        }
+        const noun = entry.possessBase || entry.second;
+        const vowelFinal = 'aeıioöuü'.includes(noun.slice(-1));
+        const harmony = entry.harmony || highHarmony(noun);
+        const suffixes = vowelFinal
+          ? ['m', 'n', `s${harmony}`, `m${harmony}z`, `n${harmony}z`]
+          : [`${harmony}m`, `${harmony}n`, harmony, `${harmony}m${harmony}z`, `${harmony}n${harmony}z`];
+        const stem = vowelFinal ? noun : (entry.stem || noun);
+        return stem + suffixes[personIndex];
+      }
+
+      function buildGenitiveCompound(entry, personIndex, type2 = false) {
+        if (type2 && entry.type2NoPoss) return `${entry.first} ${entry.second}`;
+        const possessed = compoundPossessiveNoun(entry, personIndex);
+        return entry.concat ? entry.first + possessed : `${entry.first} ${possessed}`;
+      }
+
+      function createGenitiveTask(entry, index) {
+        const owner = genitiveOwners[Math.floor(Math.random() * genitiveOwners.length)];
+        const ownerAnswer = `${owner.tr} ${buildGenitiveCompound(entry, owner.personIndex)}`;
+        const ownerPhrase = `${owner.ru[entry.gender]} ${entry.ru}`;
+        return {
+          id: `GEN-${String(index + 1).padStart(3, '0')}`,
+          genitive: true,
+          oral: true,
+          ru: `2-й тип\n${entry.first} — ${entry.firstRu}\n${entry.second} — ${entry.secondRu}\nСоставь: «${entry.ru}»\n\nСделай это словосочетание с владельцем: «${ownerPhrase}»`,
+          type2: entry.type2,
+          type2Ru: entry.ru,
+          ownerAnswer,
+          ownerAnswerRu: ownerPhrase,
+          person: 'all',
+          tags: ['genitive']
+        };
+      }
+
       function withEnding(base, p) { return base + trEnding[p]; }
       function statementForms(base, p) {
         const full = `${people[p].tr} ${withEnding(base,p)}`;
@@ -1159,7 +1313,8 @@
       const state = {
         mode: 'all', person: 'all', pool: [], index: 0,
         checked: false, attempts: 0, correct: 0, streak: 0,
-        gameRound: 0, abilityRound: 0, possessionRound: 0, pluralPossessionRound: 0
+        gameRound: 0, abilityRound: 0, possessionRound: 0, pluralPossessionRound: 0,
+        genitiveShown2: false, genitiveShownOwner: false
       };
 
       const $ = selector => document.querySelector(selector);
@@ -1170,7 +1325,10 @@
         streak: $('#streak-stat'), accuracy: $('#accuracy-stat'), id: $('#exercise-id'),
         status: $('#input-status'), crumb: $('#crumb-mode'), category: $('#status-category'),
         person: $('#status-person'), pronouns: $('#pronouns'),
-        answerLabel: $('#answer-label'), answerWrap: $('#answer-wrap')
+        answerLabel: $('#answer-label'), answerWrap: $('#answer-wrap'),
+        standardActions: $('#standard-actions'), genitiveActions: $('#genitive-actions'),
+        checkGenitive2: $('#check-genitive-2'), checkGenitiveOwner: $('#check-genitive-owner'),
+        nextGenitive: $('#next-genitive'), shuffleGenitive: $('#shuffle-genitive')
       };
 
       function normalize(value) {
@@ -1225,6 +1383,12 @@
         state.checked = false;
         render();
       }
+      function loadGenitiveTasks(reset = true) {
+        state.pool = genitiveCompoundRows.map(createGenitiveTask);
+        if (reset) state.index = 0;
+        state.checked = false;
+        render();
+      }
       function rebuildPool(reset = true) {
         if (state.mode === 'game') {
           loadGameTask();
@@ -1246,6 +1410,10 @@
           loadTextbookPossessionTasks(reset);
           return;
         }
+        if (state.mode === 'genitive') {
+          loadGenitiveTasks(reset);
+          return;
+        }
         state.pool = tasks.filter(task => matchesMode(task) && (state.person === 'all' || task.person === state.person));
         if (!state.pool.length) {
           state.person = 'all';
@@ -1261,8 +1429,11 @@
         const task = current();
         if (!task) return;
         els.prompt.textContent = task.ru;
+        els.prompt.classList.toggle('compact', Boolean(task.genitive));
         els.answerLabel.hidden = Boolean(task.oral);
         els.answerWrap.hidden = Boolean(task.oral);
+        els.standardActions.hidden = Boolean(task.genitive);
+        els.genitiveActions.hidden = !task.genitive;
         els.answer.value = '';
         els.answer.placeholder = task.possessionPlural
           ? 'Bizim dakikalarımız'
@@ -1276,7 +1447,9 @@
         els.answer.className = '';
         els.status.textContent = '⌨';
         els.feedback.className = 'feedback';
-        els.feedback.innerHTML = task.oral
+        els.feedback.innerHTML = task.genitive
+          ? 'Сначала составь словосочетание <strong>2-го типа</strong>. Затем составь это же словосочетание <strong>с указанным владельцем</strong>.'
+          : task.oral
           ? 'Составь предложение <strong>устно</strong>, затем нажми <strong>«Проверить»</strong> — здесь появится правильный ответ.'
           : task.possessionPlural
             ? 'Сначала поставь существительное во <strong>множественное число</strong>, затем добавь <strong>притяжательный суффикс</strong>. Можно писать без турецких букв.'
@@ -1312,7 +1485,40 @@
         els.streak.textContent = state.streak;
         els.accuracy.textContent = state.attempts ? `${Math.round(state.correct / state.attempts * 100)}%` : '—';
         state.checked = false;
+        state.genitiveShown2 = false;
+        state.genitiveShownOwner = false;
         if (!task.oral) requestAnimationFrame(() => els.answer.focus({ preventScroll: true }));
+      }
+
+      function renderGenitiveAnswers() {
+        const task = current();
+        const lines = [];
+        if (state.genitiveShown2) lines.push(`<strong>2-й тип:</strong> ${task.type2} — ${task.type2Ru}.`);
+        if (state.genitiveShownOwner) lines.push(`<strong>С владельцем:</strong> ${task.ownerAnswer} — ${task.ownerAnswerRu}.`);
+        els.feedback.className = 'feedback good';
+        els.feedback.innerHTML = lines.join('<br>');
+      }
+
+      function checkGenitive2() {
+        state.genitiveShown2 = true;
+        renderGenitiveAnswers();
+      }
+
+      function checkGenitiveOwner() {
+        state.genitiveShownOwner = true;
+        renderGenitiveAnswers();
+      }
+
+      function shuffleGenitiveTasks() {
+        state.pool = genitiveCompoundRows.map(createGenitiveTask);
+        for (let index = state.pool.length - 1; index > 0; index--) {
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [state.pool[index], state.pool[randomIndex]] = [state.pool[randomIndex], state.pool[index]];
+        }
+        state.index = 0;
+        render();
+        els.feedback.className = 'feedback hint';
+        els.feedback.textContent = 'Карточки перемешаны, владельцы выбраны заново.';
       }
 
       function check() {
@@ -1376,6 +1582,11 @@
 
       function showHint() {
         const task = current();
+        if (task.genitive) {
+          els.feedback.className = 'feedback hint';
+          els.feedback.textContent = 'Сначала используй «Проверить 2 тип», затем «Проверить с владельцем».';
+          return;
+        }
         const words = task.answer.replace(/[?!.]/g,'').split(' ');
         const mask = words.map(word => word.length <= 2 ? word : word[0] + '·'.repeat(Math.min(word.length - 1, 7))).join(' ');
         els.feedback.className = 'feedback hint';
@@ -1422,8 +1633,15 @@
 
       function setMode(mode) {
         state.mode = mode;
+        if (mode === 'genitive') {
+          state.person = 'all';
+          document.querySelectorAll('.person-btn').forEach(button => button.classList.toggle('active', button.dataset.person === 'all'));
+          els.person.textContent = 'RANDOM OWNERS';
+        } else if (state.person === 'all') {
+          els.person.textContent = 'ALL PERSONS';
+        }
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
+        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', genitive: 'genitive', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
         els.crumb.textContent = names[mode];
         els.category.textContent = mode === 'game'
           ? 'BEST GAME'
@@ -1435,7 +1653,9 @@
                 ? 'POSSESSION + PLURAL'
                 : mode === 'possession-textbook'
                   ? 'POSSESSION · TEXTBOOK'
-                  : mode.toUpperCase();
+                  : mode === 'genitive'
+                    ? 'GENITIVE · TYPE 2 + OWNER'
+                    : mode.toUpperCase();
         rebuildPool();
       }
 
@@ -1462,6 +1682,10 @@
       els.next.addEventListener('click', next);
       els.hint.addEventListener('click', showHint);
       els.shuffle.addEventListener('click', shuffle);
+      els.checkGenitive2.addEventListener('click', checkGenitive2);
+      els.checkGenitiveOwner.addEventListener('click', checkGenitiveOwner);
+      els.nextGenitive.addEventListener('click', next);
+      els.shuffleGenitive.addEventListener('click', shuffleGenitiveTasks);
       els.answer.addEventListener('keydown', event => {
         if (event.key === 'Enter') { event.preventDefault(); state.checked ? next() : check(); }
         if (event.key === 'Escape') { els.answer.value = ''; els.answer.className = ''; els.status.textContent = '⌨'; }
