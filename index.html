@@ -355,6 +355,13 @@
       user-select: none;
     }
     .task-pane { min-width: 0; padding: clamp(22px, 4vw, 40px); }
+    .translation-options { margin-bottom: 18px; }
+    .translation-options label { display: block; margin-bottom: 6px; }
+    .translation-options select {
+      width: 100%; max-width: 320px; min-height: 44px; padding: 10px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: #151b24; color: var(--text); font: inherit; font-size: 16px;
+    }
     .comment {
       color: #667383;
       font-family: var(--mono);
@@ -398,7 +405,7 @@
       font-size: 13px;
       pointer-events: none;
     }
-    #answer {
+    #answer, #sentence-answer {
       width: 100%;
       padding: 15px 46px 15px 37px;
       border: 1px solid var(--border);
@@ -410,10 +417,11 @@
       font-size: 16px;
       transition: border-color .15s, box-shadow .15s;
     }
-    #answer::placeholder { color: #445061; }
-    #answer:focus { border-color: rgba(103,212,232,.65); box-shadow: 0 0 0 3px rgba(103,212,232,.08); outline: 0; }
-    #answer.correct { border-color: var(--green); box-shadow: 0 0 0 3px rgba(123,216,143,.08); }
-    #answer.wrong { border-color: var(--red); box-shadow: 0 0 0 3px rgba(255,101,122,.08); }
+    #sentence-answer { min-height: 130px; line-height: 1.6; resize: vertical; }
+    #answer::placeholder, #sentence-answer::placeholder { color: #445061; }
+    #answer:focus, #sentence-answer:focus { border-color: rgba(103,212,232,.65); box-shadow: 0 0 0 3px rgba(103,212,232,.08); outline: 0; }
+    #answer.correct, #sentence-answer.correct { border-color: var(--green); box-shadow: 0 0 0 3px rgba(123,216,143,.08); }
+    #answer.wrong, #sentence-answer.wrong { border-color: var(--red); box-shadow: 0 0 0 3px rgba(255,101,122,.08); }
     .input-status {
       position: absolute;
       right: 14px;
@@ -643,6 +651,8 @@
         <button class="mode-btn possession-plural-btn" data-mode="possession-plural"><span class="mode-icon">⌂+</span><span>Принадлежность и мн. число</span><span class="mode-count" id="count-possession-plural">∞</span></button>
         <button class="mode-btn textbook-possession-btn" data-mode="possession-textbook"><span class="mode-icon">▤</span><span>Принадлежность. Предложения (учебник)</span><span class="mode-count" id="count-possession-textbook">40</span></button>
         <button class="mode-btn genitive-btn" data-mode="genitive"><span class="mode-icon">G</span><span>Родит. падеж</span><span class="mode-count" id="count-genitive">66</span></button>
+        <button class="mode-btn" data-mode="locative"><span class="mode-icon">L</span><span>Местный падеж</span><span class="mode-count" id="count-locative">72</span></button>
+        <button class="mode-btn" data-mode="past"><span class="mode-icon">D</span><span>Прошедшее время</span><span class="mode-count" id="count-past">46</span></button>
         <button class="mode-btn" data-mode="nominal"><span class="mode-icon">N</span><span>Именные формы</span><span class="mode-count" id="count-nominal">0</span></button>
         <button class="mode-btn" data-mode="question"><span class="mode-icon">?</span><span>Вопросы</span><span class="mode-count" id="count-question">0</span></button>
         <button class="mode-btn" data-mode="negative"><span class="mode-icon">!</span><span>Отрицания</span><span class="mode-count" id="count-negative">0</span></button>
@@ -674,12 +684,28 @@
           <div class="code-body">
             <div class="gutter" aria-hidden="true">01<br>02<br>03<br>04<br>05<br>06<br>07<br>08</div>
             <div class="task-pane">
-              <div class="comment"><span class="keyword">// TODO:</span> составь фразу по-турецки</div>
+              <div class="translation-options" id="translation-options" hidden>
+                <label class="comment" for="translation-direction">Направление перевода</label>
+                <select id="translation-direction">
+                  <option value="mixed">В обе стороны</option>
+                  <option value="tr-ru">С турецкого на русский</option>
+                  <option value="ru-tr">С русского на турецкий</option>
+                </select>
+              </div>
+              <div class="translation-options" id="practice-options" hidden>
+                <label class="comment" for="practice-format">Как отвечать</label>
+                <select id="practice-format">
+                  <option value="oral">Устно</option>
+                  <option value="written">Письменно</option>
+                </select>
+              </div>
+              <div class="comment"><span class="keyword">// TODO:</span> <span id="task-instruction">составь фразу по-турецки</span></div>
               <div class="prompt" id="prompt">Я учитель</div>
               <label class="comment" id="answer-label" for="answer">const answer: Turkish =</label>
               <div class="answer-wrap" id="answer-wrap">
                 <span class="answer-prefix">›</span>
                 <input id="answer" type="text" inputmode="text" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="Ben öğretmenim" aria-describedby="feedback">
+                <textarea id="sentence-answer" rows="4" autocomplete="off" autocapitalize="sentences" spellcheck="false" aria-describedby="feedback" hidden></textarea>
                 <span class="input-status" id="input-status">⌨</span>
               </div>
               <div class="feedback" id="feedback">Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.</div>
@@ -1064,6 +1090,91 @@
         note: ''
       }));
 
+      // Each vocabulary entry is a dictionary form, never an inflected answer fragment.
+      const locativeRows = [
+        ['Benim görüş alanımdasın.', 'Ты в моём поле зрения.', 'sen', 'görüş — зрение, взгляд; alan — поле, область'],
+        ['Hikâyemizin son bölümündeyiz.', 'Мы в последней главе нашей истории.', 'biz', 'hikâye — история; son — последний; bölüm — глава, часть'],
+        ['Anılarımın en karanlık köşesindesiniz.', 'Вы в самом тёмном уголке моих воспоминаний.', 'siz', 'anı — воспоминание; en — самый; karanlık — тёмный; köşe — уголок'],
+        ['Geçmişimin gölgesindeler.', 'Они в тени моего прошлого.', 'onlar', 'geçmiş — прошлое; gölge — тень'],
+        ['Fotoğrafımın arka planındasın.', 'Ты на заднем плане моей фотографии.', 'sen', 'fotoğraf — фотография; arka — задний; plan — план'],
+        ['Senin rüyanda.', 'В твоём сне.', 'sen', 'sen — ты; rüya — сон'],
+        ['Geleceğimizdeyiz.', 'Мы в нашем будущем.', 'biz', 'gelecek — будущее'],
+        ['Aynanın yansımasındasın.', 'Ты в отражении зеркала.', 'sen', 'ayna — зеркало; yansıma — отражение'],
+        ['Ailemizin yazlık evindeyiz.', 'Мы в летнем доме нашей семьи.', 'biz', 'aile — семья; yazlık — летний; ev — дом'],
+        ['Annemin iş yerindeyim.', 'Я на рабочем месте моей мамы.', 'ben', 'anne — мама; iş — работа; yer — место'],
+        ['Aşkımızın izleri havada.', 'Следы нашей любви в воздухе.', 'onlar', 'aşk — любовь; iz — след; hava — воздух'],
+        ['Çocukluğumun parkındayız.', 'Мы в парке моего детства.', 'biz', 'çocukluk — детство; park — парк'],
+        ['Tavşanın havucunda küçük bir sır var.', 'В морковке кролика есть маленький секрет.', 'o', 'tavşan — кролик; havuç — морковь; küçük — маленький; bir — один; sır — секрет; var — есть'],
+        ['Dedemin eski saatinde bir sır var.', 'В старых часах моего дедушки есть секрет.', 'o', 'dede — дедушка; eski — старый; saat — часы; bir — один; sır — секрет; var — есть'],
+        ['Ben hâlâ senin hayallerindeyim.', 'Я всё ещё в твоих мечтах.', 'ben', 'ben — я; hâlâ — всё ещё; sen — ты; hayal — мечта'],
+        ["Türkiye'nin en güzel şehrindeyiz.", 'Мы в самом красивом городе Турции.', 'biz', 'Türkiye — Турция; en — самый; güzel — красивый; şehir — город'],
+        ['Kalbimin en sessiz köşesindesin.', 'Ты в самом тихом уголке моего сердца.', 'sen', 'kalp — сердце; en — самый; sessiz — тихий; köşe — уголок'],
+        ['Gözlerinin derinliğindeyim.', 'Я в глубине твоих глаз.', 'ben', 'göz — глаз; derinlik — глубина'],
+        ['Hayatımızın en güzel günlerindeyiz.', 'Мы проживаем самые прекрасные дни нашей жизни.', 'biz', 'hayat — жизнь; en — самый; güzel — прекрасный; gün — день'],
+        ['Çocukluğumun unutulmuş sokaklarındayım.', 'Я на забытых улицах моего детства.', 'ben', 'çocukluk — детство; unutulmuş — забытый; sokak — улица'],
+        ['Sen benim en güzel rüyamdasın.', 'Ты в моём самом прекрасном сне.', 'sen', 'sen — ты; ben — я; en — самый; güzel — прекрасный; rüya — сон'],
+        ['Geçmişimizin eski fotoğraflarındayız.', 'Мы на старых фотографиях нашего прошлого.', 'biz', 'geçmiş — прошлое; eski — старый; fotoğraf — фотография'],
+        ['Denizlerin en derin yerindesin.', 'Ты в самом глубоком месте морей.', 'sen', 'deniz — море; en — самый; derin — глубокий; yer — место'],
+        ['Zamanın sonsuzluğundayız.', 'Мы в бесконечности времени.', 'biz', 'zaman — время; sonsuzluk — бесконечность'],
+        ['Annemin gençlik hayallerindeyim.', 'Я в юношеских мечтах моей мамы.', 'ben', 'anne — мама; gençlik — юность; hayal — мечта'],
+        ['Babamın eski saatinin içindeyiz.', 'Мы внутри старых часов моего папы.', 'biz', 'baba — папа; eski — старый; saat — часы; iç — внутренняя часть'],
+        ["Türkiye'nin küçük bir sahil kasabasındayız.", 'Мы в маленьком приморском городке Турции.', 'biz', 'Türkiye — Турция; küçük — маленький; bir — один; sahil — побережье; kasaba — городок'],
+        ['Sen benim geleceğimin tam ortasındasın.', 'Ты в самом центре моего будущего.', 'sen', 'sen — ты; ben — я; gelecek — будущее; tam — точно, прямо; orta — середина'],
+        ['Sonbaharın ilk sabahındayız.', 'Сейчас первое утро осени.', 'biz', 'sonbahar — осень; ilk — первый; sabah — утро'],
+        ['Dünyanın en uzak köşesindeyiz.', 'Мы в самом далёком уголке мира.', 'biz', 'dünya — мир; en — самый; uzak — далёкий; köşe — уголок'],
+        ['Bende senin kalbin var.', 'У меня есть твоё сердце.', 'ben', 'ben — я; sen — ты; kalp — сердце; var — есть'],
+        ['Sende benim sırrım var.', 'У тебя есть мой секрет.', 'sen', 'sen — ты; ben — я; sır — секрет; var — есть'],
+        ['Onda çocukluğumun fotoğrafı var.', 'У него/неё есть фотография моего детства.', 'o', 'o — он/она; çocukluk — детство; fotoğraf — фотография; var — есть'],
+        ['Bizde geleceğimizin anahtarı var.', 'У нас есть ключ от нашего будущего.', 'biz', 'biz — мы; gelecek — будущее; anahtar — ключ; var — есть'],
+        ['Sizde geçmişimizin izleri var.', 'У вас есть следы нашего прошлого.', 'siz', 'siz — вы; geçmiş — прошлое; iz — след; var — есть'],
+        ['Onlarda ailemizin eski mektupları var.', 'У них есть старые письма нашей семьи.', 'onlar', 'onlar — они; aile — семья; eski — старый; mektup — письмо; var — есть']
+      ];
+      const locativeTasks = locativeRows.flatMap(([tr, ru, person, vocabulary], index) =>
+        ['tr-ru', 'ru-tr'].map(direction => ({
+          id: `LOC-${String(index + 1).padStart(3, '0')}-${direction.toUpperCase()}`,
+          oral: true, locative: true, direction, person, vocabulary,
+          ru: direction === 'tr-ru' ? tr : ru,
+          answer: direction === 'tr-ru' ? ru : tr,
+          tags: ['locative']
+        }))
+      );
+
+      const pastRows = [
+        ['Bir gün üniversitemizin otobüsünün arka koltuğunda uyuyakaldım ve son durakta uyandım.', 'Однажды я заснул на заднем сиденье автобуса нашего университета и проснулся на конечной остановке.', 'ben', 'bir — один; gün — день; üniversite — университет; otobüs — автобус; arka — задний; koltuk — сиденье; uyuyakalmak — заснуть нечаянно; ve — и; son — последний; durak — остановка; uyanmak — просыпаться'],
+        ['Dün gece komşumun ağabeyinin odasında uyuyakaldım, ama sabah kendi evimde uyandım.', 'Вчера ночью я заснул в комнате старшего брата моего соседа, но утром проснулся у себя дома.', 'ben', 'dün — вчера; gece — ночь; komşu — сосед; ağabey — старший брат; oda — комната; uyuyakalmak — заснуть нечаянно; ama — но; sabah — утро; kendi — сам, собственный; ev — дом; uyanmak — просыпаться'],
+        ['Dün akşam kendi bahçemizdeydik.', 'Вчера вечером мы были в нашем собственном саду.', 'biz', 'dün — вчера; akşam — вечер; kendi — сам, собственный; bahçe — сад'],
+        ['Dün gece büyükannemin eski evinin çatı katında uyudum.', 'Вчера ночью я спал на чердаке старого дома моей бабушки.', 'ben', 'dün — вчера; gece — ночь; büyükanne — бабушка; eski — старый; ev — дом; çatı — крыша; kat — этаж; uyumak — спать'],
+        ['Dün akşam annemin çocukluk fotoğraflarında küçük bir sır buldum.', 'Вчера вечером я нашёл маленький секрет на детских фотографиях моей мамы.', 'ben', 'dün — вчера; akşam — вечер; anne — мама; çocukluk — детство; fotoğraf — фотография; küçük — маленький; bir — один; sır — секрет; bulmak — находить'],
+        ['Geçen yaz ailemizin deniz kenarındaki evinde yaşadık.', 'Прошлым летом мы жили в доме нашей семьи на берегу моря.', 'biz', 'geçen — прошлый; yaz — лето; aile — семья; deniz — море; kenar — край, берег; ev — дом; yaşamak — жить'],
+        ['Dün gece senin rüyanda beyaz bir at gördüm.', 'Вчера ночью я увидел белую лошадь в твоём сне.', 'ben', 'dün — вчера; gece — ночь; sen — ты; rüya — сон; beyaz — белый; bir — один; at — лошадь; görmek — видеть'],
+        ['Geçen sonbahar dedemin eski bahçesinde altın bir yüzük buldum.', 'Прошлой осенью я нашёл золотое кольцо в старом саду моего дедушки.', 'ben', 'geçen — прошлый; sonbahar — осень; dede — дедушка; eski — старый; bahçe — сад; altın — золото, золотой; bir — один; yüzük — кольцо; bulmak — находить'],
+        ['Dün akşam babamın çalışma odasında eski bir harita gördük.', 'Вчера вечером мы увидели старую карту в рабочем кабинете моего папы.', 'biz', 'dün — вчера; akşam — вечер; baba — папа; çalışma — работа; oda — комната; eski — старый; bir — один; harita — карта; görmek — видеть'],
+        ['Dün gece komşumuzun evinin karanlık penceresinde bir ışık gördüm.', 'Вчера ночью я увидел свет в тёмном окне дома нашего соседа.', 'ben', 'dün — вчера; gece — ночь; komşu — сосед; ev — дом; karanlık — тёмный; pencere — окно; bir — один; ışık — свет; görmek — видеть'],
+        ["Geçen hafta Türkiye'nin küçük bir sahil kasabasında kaldık.", 'На прошлой неделе мы остановились в маленьком приморском городке Турции.', 'biz', 'geçen — прошлый; hafta — неделя; Türkiye — Турция; küçük — маленький; bir — один; sahil — побережье; kasaba — городок; kalmak — оставаться, останавливаться'],
+        ['Dün sabah annemin eski saatinde küçük bir fotoğraf buldum.', 'Вчера утром я нашёл маленькую фотографию в старых часах моей мамы.', 'ben', 'dün — вчера; sabah — утро; anne — мама; eski — старый; saat — часы; küçük — маленький; bir — один; fotoğraf — фотография; bulmak — находить'],
+        ['Dün akşam çocukluğumun en güzel parkında oturdum.', 'Вчера вечером я сидел в самом красивом парке моего детства.', 'ben', 'dün — вчера; akşam — вечер; çocukluk — детство; en — самый; güzel — красивый; park — парк; oturmak — сидеть'],
+        ['Geçen gece senin fotoğrafının arka planında bir gölge gördüm.', 'Прошлой ночью я увидел тень на заднем плане твоей фотографии.', 'ben', 'geçen — прошлый; gece — ночь; sen — ты; fotoğraf — фотография; arka — задний; plan — план; bir — один; gölge — тень; görmek — видеть'],
+        ['Dün akşam büyükbabamın eski defterinde garip bir isim bulduk.', 'Вчера вечером мы нашли странное имя в старой тетради моего дедушки.', 'biz', 'dün — вчера; akşam — вечер; büyükbaba — дедушка; eski — старый; defter — тетрадь; garip — странный; bir — один; isim — имя; bulmak — находить'],
+        ['Geçen yaz arkadaşımın ailesinin yazlık evinde kaldım.', 'Прошлым летом я остановился в летнем доме семьи моего друга.', 'ben', 'geçen — прошлый; yaz — лето; arkadaş — друг; aile — семья; yazlık — летний; ev — дом; kalmak — оставаться, останавливаться'],
+        ['Dün gece eski evimizin bodrum katında tuhaf bir ses duydum.', 'Вчера ночью я услышал странный звук в подвале нашего старого дома.', 'ben', 'dün — вчера; gece — ночь; eski — старый; ev — дом; bodrum — подвал; kat — этаж; tuhaf — странный; bir — один; ses — звук; duymak — слышать'],
+        ["Geçen hafta İstanbul'un eski sokaklarında kayboldum.", 'На прошлой неделе я заблудился на старых улицах Стамбула.', 'ben', 'geçen — прошлый; hafta — неделя; İstanbul — Стамбул; eski — старый; sokak — улица; kaybolmak — теряться, заблудиться'],
+        ['Dün gece odamın penceresinde küçük bir kuş gördüm.', 'Вчера ночью я увидел маленькую птицу в окне моей комнаты.', 'ben', 'dün — вчера; gece — ночь; oda — комната; pencere — окно; küçük — маленький; bir — один; kuş — птица; görmek — видеть'],
+        ['Dün akşam dedemin eski saatinin içinde küçük bir anahtar buldum.', 'Вчера вечером я нашёл маленький ключ внутри старых часов моего дедушки.', 'ben', 'dün — вчера; akşam — вечер; dede — дедушка; eski — старый; saat — часы; iç — внутренняя часть; küçük — маленький; bir — один; anahtar — ключ; bulmak — находить'],
+        ['Dün gece senin hayallerinde miydim?', 'Вчера ночью я был в твоих мечтах?', 'ben', 'dün — вчера; gece — ночь; sen — ты; hayal — мечта; mi — вопросительная частица'],
+        ['Geçen yaz denizin en derin sessizliğinde huzur buldum.', 'Прошлым летом я нашёл покой в самой глубокой тишине моря.', 'ben', 'geçen — прошлый; yaz — лето; deniz — море; en — самый; derin — глубокий; sessizlik — тишина; huzur — покой; bulmak — находить'],
+        ['Dün akşam ailemizin eski evinin bahçesinde yalnızdım.', 'Вчера вечером я был один в саду старого дома нашей семьи.', 'ben', 'dün — вчера; akşam — вечер; aile — семья; eski — старый; ev — дом; bahçe — сад; yalnız — один, одинокий']
+      ];
+      const pastTasks = pastRows.flatMap(([tr, ru, person, vocabulary], index) =>
+        ['tr-ru', 'ru-tr'].map(direction => ({
+          id: `PAST-${String(index + 1).padStart(3, '0')}-${direction.toUpperCase()}`,
+          past: true, direction, person, vocabulary,
+          ru: direction === 'tr-ru' ? tr : ru,
+          answer: direction === 'tr-ru' ? ru : tr,
+          answers: direction === 'tr-ru' ? [ru] : [tr, `${person === 'biz' ? 'Biz' : 'Ben'} ${tr[0].toLocaleLowerCase('tr-TR')}${tr.slice(1)}`],
+          tags: ['past']
+        }))
+      );
+
       const genitiveCompoundRows = [
         { first: 'telif', firstRu: 'авторство', second: 'hak', secondRu: 'право', possessBase: 'haklar', type2: 'telif hakları', ru: 'авторские права', gender: 'pl' },
         { first: 'üniversite', firstRu: 'университет', second: 'diploma', secondRu: 'диплом', type2: 'üniversite diploması', ru: 'диплом университета', gender: 'm' },
@@ -1311,8 +1422,8 @@
       }
 
       const state = {
-        mode: 'all', person: 'all', pool: [], index: 0,
-        checked: false, attempts: 0, correct: 0, streak: 0,
+        mode: 'all', person: 'all', pool: [], index: 0, translationDirection: 'mixed', practiceFormat: 'oral',
+        checked: false, reviewingHint: false, attempts: 0, correct: 0, streak: 0,
         gameRound: 0, abilityRound: 0, possessionRound: 0, pluralPossessionRound: 0,
         genitiveShown2: false, genitiveShownOwner: false
       };
@@ -1320,6 +1431,10 @@
       const $ = selector => document.querySelector(selector);
       const els = {
         prompt: $('#prompt'), answer: $('#answer'), feedback: $('#feedback'),
+        instruction: $('#task-instruction'), translationOptions: $('#translation-options'),
+        translationDirection: $('#translation-direction'),
+        practiceOptions: $('#practice-options'), practiceFormat: $('#practice-format'),
+        shortAnswer: $('#answer'), sentenceAnswer: $('#sentence-answer'),
         check: $('#check'), next: $('#next'), hint: $('#hint'), shuffle: $('#shuffle'),
         progress: $('#progress'), position: $('#position'), correct: $('#correct-stat'),
         streak: $('#streak-stat'), accuracy: $('#accuracy-stat'), id: $('#exercise-id'),
@@ -1343,6 +1458,11 @@
       }
 
       function current() { return state.pool[state.index]; }
+      function isOral(task) { return task.past ? state.practiceFormat === 'oral' : Boolean(task.oral); }
+      function normalizeSentence(value) {
+        return normalize(value).replace(/[âîû]/g, c => ({'â':'a','î':'i','û':'u'})[c])
+          .replace(/ё/g, 'е').replace(/[,;:!?—–.]/g, ' ').replace(/\s+/g, ' ').trim();
+      }
       function matchesMode(task) { return state.mode === 'all' || task.tags.includes(state.mode); }
       function loadGameTask() {
         state.gameRound++;
@@ -1389,7 +1509,43 @@
         state.checked = false;
         render();
       }
+      function loadLocativeTasks() {
+        state.pool = locativeTasks.filter(task =>
+          (state.person === 'all' || task.person === state.person) &&
+          (state.translationDirection === 'mixed' || task.direction === state.translationDirection)
+        );
+        for (let i = state.pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.pool[i], state.pool[j]] = [state.pool[j], state.pool[i]];
+        }
+        state.index = 0;
+        render();
+      }
+      function loadPastTasks() {
+        const available = pastTasks.filter(task => state.translationDirection === 'mixed' || task.direction === state.translationDirection);
+        state.pool = available.filter(task => state.person === 'all' || task.person === state.person);
+        if (!state.pool.length) {
+          state.person = 'all';
+          document.querySelectorAll('.person-btn').forEach(button => button.classList.toggle('active', button.dataset.person === 'all'));
+          els.person.textContent = 'ALL PERSONS';
+          state.pool = available;
+        }
+        for (let i = state.pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.pool[i], state.pool[j]] = [state.pool[j], state.pool[i]];
+        }
+        state.index = 0;
+        render();
+      }
       function rebuildPool(reset = true) {
+        if (state.mode === 'past') {
+          loadPastTasks();
+          return;
+        }
+        if (state.mode === 'locative') {
+          loadLocativeTasks();
+          return;
+        }
         if (state.mode === 'game') {
           loadGameTask();
           return;
@@ -1428,10 +1584,24 @@
       function render() {
         const task = current();
         if (!task) return;
+        const oral = isOral(task);
+        const translation = task.locative || task.past;
+        els.answer = task.past ? els.sentenceAnswer : els.shortAnswer;
+        els.shortAnswer.hidden = Boolean(task.past);
+        els.sentenceAnswer.hidden = !task.past;
+        els.practiceOptions.hidden = !task.past;
+        els.answerLabel.htmlFor = task.past ? 'sentence-answer' : 'answer';
+        els.answerLabel.textContent = task.past ? 'Твой перевод:' : 'const answer: Turkish =';
+        els.answer.lang = translation && task.direction === 'tr-ru' ? 'ru' : 'tr';
         els.prompt.textContent = task.ru;
-        els.prompt.classList.toggle('compact', Boolean(task.genitive));
-        els.answerLabel.hidden = Boolean(task.oral);
-        els.answerWrap.hidden = Boolean(task.oral);
+        els.prompt.lang = translation && task.direction === 'tr-ru' ? 'tr' : 'ru';
+        els.prompt.classList.toggle('compact', Boolean(task.genitive || translation));
+        els.translationOptions.hidden = !translation;
+        els.instruction.textContent = translation
+          ? `переведи ${oral ? 'устно' : 'письменно'} на ${task.direction === 'tr-ru' ? 'русский' : 'турецкий'}`
+          : 'составь фразу по-турецки';
+        els.answerLabel.hidden = oral;
+        els.answerWrap.hidden = oral;
         els.standardActions.hidden = Boolean(task.genitive);
         els.genitiveActions.hidden = !task.genitive;
         els.answer.value = '';
@@ -1444,11 +1614,18 @@
               : task.game
                 ? 'Ben kurtarıyorum'
                 : 'Ben öğretmenim';
+        if (task.past) els.answer.placeholder = task.direction === 'tr-ru' ? 'Напиши перевод на русском' : 'Напиши перевод на турецком';
         els.answer.className = '';
         els.status.textContent = '⌨';
         els.feedback.className = 'feedback';
         els.feedback.innerHTML = task.genitive
           ? 'Сначала составь словосочетание <strong>2-го типа</strong>. Затем составь это же словосочетание <strong>с указанным владельцем</strong>.'
+          : task.past
+          ? oral
+            ? 'Переведи <strong>устно</strong> и нажми <strong>«Проверить»</strong>.'
+            : 'Напиши перевод и нажми <strong>«Проверить»</strong>, чтобы сравнить с образцом. Турецкие буквы можно заменять английскими.'
+          : task.locative
+          ? 'Переведи <strong>устно</strong> и нажми <strong>«Проверить»</strong>. В подсказке — только слова в начальной форме.'
           : task.oral
           ? 'Составь предложение <strong>устно</strong>, затем нажми <strong>«Проверить»</strong> — здесь появится правильный ответ.'
           : task.possessionPlural
@@ -1460,7 +1637,7 @@
                 : task.game
                   ? 'Составь короткую фразу: только местоимение и глагол в форме <strong>-yor</strong>. Турецкие буквы можно заменять английскими.'
                   : 'Можно писать без турецких букв: <strong>ogretmenim</strong> вместо <strong>öğretmenim</strong>.';
-        els.id.textContent = task.oral
+        els.id.textContent = task.oral || task.past
           ? task.id
           : task.possessionPlural
             ? `POSS-PL-${String(state.pluralPossessionRound).padStart(3,'0')}`
@@ -1487,7 +1664,8 @@
         state.checked = false;
         state.genitiveShown2 = false;
         state.genitiveShownOwner = false;
-        if (!task.oral) requestAnimationFrame(() => els.answer.focus({ preventScroll: true }));
+        state.reviewingHint = false;
+        if (!oral) requestAnimationFrame(() => els.answer.focus({ preventScroll: true }));
       }
 
       function renderGenitiveAnswers() {
@@ -1523,21 +1701,34 @@
 
       function check() {
         const task = current();
-        if (task.oral) {
+        if (task.past && state.reviewingHint) {
+          state.reviewingHint = false;
+          els.feedback.className = 'feedback';
+          els.feedback.innerHTML = `Образец ответа: <strong>${task.answer}</strong>`;
+          return;
+        }
+        if (isOral(task)) {
           if (state.checked) { next(); return; }
           state.checked = true;
           els.feedback.className = 'feedback good';
           els.feedback.innerHTML = `Правильный ответ: <strong>${task.answer}</strong>`;
           return;
         }
-        const entered = normalize(els.answer.value);
+        const normalizeAnswer = task.past ? normalizeSentence : normalize;
+        const entered = normalizeAnswer(els.answer.value);
         if (!entered) {
           els.feedback.className = 'feedback hint';
           els.feedback.textContent = 'Сначала введи ответ.';
           return;
         }
         if (state.checked) { next(); return; }
-        const ok = task.answers.some(answer => normalize(answer) === entered);
+        const ok = task.answers.some(answer => normalizeAnswer(answer) === entered);
+        if (task.past && !ok) {
+          state.checked = true;
+          els.feedback.className = 'feedback';
+          els.feedback.innerHTML = `Образец ответа: <strong>${task.answer}</strong><br>Сравни по смыслу: возможны другие верные формулировки.`;
+          return;
+        }
         state.attempts++;
         state.checked = true;
         if (ok) {
@@ -1582,6 +1773,13 @@
 
       function showHint() {
         const task = current();
+        if (task.locative || task.past) {
+          els.feedback.className = 'feedback hint';
+          els.feedback.textContent = task.vocabulary;
+          if (task.past && !isOral(task)) state.reviewingHint = state.checked;
+          if (isOral(task)) state.checked = false;
+          return;
+        }
         if (task.genitive) {
           els.feedback.className = 'feedback hint';
           els.feedback.textContent = 'Сначала используй «Проверить 2 тип», затем «Проверить с владельцем».';
@@ -1641,7 +1839,7 @@
           els.person.textContent = 'ALL PERSONS';
         }
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', genitive: 'genitive', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
+        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', genitive: 'genitive', locative: 'locative', past: 'past-tense', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
         els.crumb.textContent = names[mode];
         els.category.textContent = mode === 'game'
           ? 'BEST GAME'
@@ -1682,19 +1880,29 @@
       els.next.addEventListener('click', next);
       els.hint.addEventListener('click', showHint);
       els.shuffle.addEventListener('click', shuffle);
+      els.translationDirection.addEventListener('change', () => {
+        state.translationDirection = els.translationDirection.value;
+        rebuildPool();
+      });
+      els.practiceFormat.addEventListener('change', () => {
+        state.practiceFormat = els.practiceFormat.value;
+        render();
+      });
       els.checkGenitive2.addEventListener('click', checkGenitive2);
       els.checkGenitiveOwner.addEventListener('click', checkGenitiveOwner);
       els.nextGenitive.addEventListener('click', next);
       els.shuffleGenitive.addEventListener('click', shuffleGenitiveTasks);
-      els.answer.addEventListener('keydown', event => {
-        if (event.key === 'Enter') { event.preventDefault(); state.checked ? next() : check(); }
+      [els.shortAnswer, els.sentenceAnswer].forEach(input => input.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); state.checked ? next() : check(); }
         if (event.key === 'Escape') { els.answer.value = ''; els.answer.className = ''; els.status.textContent = '⌨'; }
-      });
+      }));
       document.addEventListener('keydown', event => {
         if (event.altKey && (event.key === 'h' || event.key === 'H')) { event.preventDefault(); showHint(); }
       });
 
       buildPersonButtons();
+      $('#count-locative').textContent = locativeTasks.length;
+      $('#count-past').textContent = pastTasks.length;
       ['all','nominal','question','negative','yor'].forEach(mode => {
         const count = mode === 'all' ? tasks.length : tasks.filter(task => task.tags.includes(mode)).length;
         $(`#count-${mode}`).textContent = count;
