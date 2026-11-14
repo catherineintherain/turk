@@ -652,6 +652,7 @@
         <button class="mode-btn textbook-possession-btn" data-mode="possession-textbook"><span class="mode-icon">▤</span><span>Принадлежность. Предложения (учебник)</span><span class="mode-count" id="count-possession-textbook">40</span></button>
         <button class="mode-btn genitive-btn" data-mode="genitive"><span class="mode-icon">G</span><span>Родит. падеж</span><span class="mode-count" id="count-genitive">66</span></button>
         <button class="mode-btn" data-mode="locative"><span class="mode-icon">L</span><span>Местный падеж</span><span class="mode-count" id="count-locative">72</span></button>
+        <button class="mode-btn" data-mode="locative-tenses"><span class="mode-icon">L+</span><span>Местн.падеж+наст.время + прош.время</span><span class="mode-count" id="count-locative-tenses">106</span></button>
         <button class="mode-btn" data-mode="past"><span class="mode-icon">D</span><span>Прошедшее время</span><span class="mode-count" id="count-past">46</span></button>
         <button class="mode-btn" data-mode="nominal"><span class="mode-icon">N</span><span>Именные формы</span><span class="mode-count" id="count-nominal">0</span></button>
         <button class="mode-btn" data-mode="question"><span class="mode-icon">?</span><span>Вопросы</span><span class="mode-count" id="count-question">0</span></button>
@@ -1129,15 +1130,74 @@
         ['Sizde geçmişimizin izleri var.', 'У вас есть следы нашего прошлого.', 'siz', 'siz — вы; geçmiş — прошлое; iz — след; var — есть'],
         ['Onlarda ailemizin eski mektupları var.', 'У них есть старые письма нашей семьи.', 'onlar', 'onlar — они; aile — семья; eski — старый; mektup — письмо; var — есть']
       ];
-      const locativeTasks = locativeRows.flatMap(([tr, ru, person, vocabulary], index) =>
+      const oralTranslationTasks = (rows, mode, prefix) => rows.flatMap(([tr, ru, person, vocabulary], index) =>
         ['tr-ru', 'ru-tr'].map(direction => ({
-          id: `LOC-${String(index + 1).padStart(3, '0')}-${direction.toUpperCase()}`,
-          oral: true, locative: true, direction, person, vocabulary,
+          id: `${prefix}-${String(index + 1).padStart(3, '0')}-${direction.toUpperCase()}`,
+          oral: true, oralTranslation: true, direction, person, vocabulary,
           ru: direction === 'tr-ru' ? tr : ru,
           answer: direction === 'tr-ru' ? ru : tr,
-          tags: ['locative']
+          tags: [mode]
         }))
       );
+      const locativeTasks = oralTranslationTasks(locativeRows, 'locative', 'LOC');
+
+      const locativeTenseRows = [
+        ['Kalbimdesin.', 'Ты в моём сердце.', 'sen', 'kalp — сердце'],
+        ['Kalbimdeydin.', 'Ты был в моём сердце.', 'sen', 'kalp — сердце'],
+        ['Düşüncelerimdesin.', 'Ты в моих мыслях.', 'sen', 'düşünce — мысль'],
+        ['Aklımdasın.', 'Ты у меня на уме.', 'sen', 'akıl — ум'],
+        ['Hayatımda', 'В моей жизни', 'ben', 'hayat — жизнь'],
+        ['Benim görüş alanımdasın.', 'Ты в поле моего зрения.', 'sen', 'ben — я; görüş — зрение, взгляд; alan — поле'],
+        ['Kalbimin en sessiz köşesindesin.', 'Ты в самом тихом уголке моего сердца.', 'sen', 'kalp — сердце; en — самый; sessiz — тихий; köşe — уголок'],
+        ['Dün gece senin hayallerinde miydim?', 'Прошлой ночью я был в твоих мечтах?', 'ben', 'dün — вчера; gece — ночь; sen — ты; hayal — мечта; mi — ли'],
+        ['Yanındayım.', 'Я рядом с тобой.', 'ben', 'yan — сторона, бок'],
+        ['Dün okuldaydım, ama kız kardeşim evdeydi.', 'Вчера я была в школе, а моя сестра была дома.', 'ben', 'dün — вчера; okul — школа; ama — но, а; kız — девочка; kardeş — брат или сестра; ev — дом'],
+        ['Dün kız kardeşin annemin odasındaydı.', 'Вчера твоя сестра была в комнате моей мамы.', 'o', 'dün — вчера; kız — девочка; kardeş — брат или сестра; anne — мама; oda — комната'],
+        ['Dün babamın arkadaşının evindeydim.', 'Вчера я была в доме друга моего папы.', 'ben', 'dün — вчера; baba — папа; arkadaş — друг; ev — дом'],
+        ['Dün akşam kendi bahçemizdeydik.', 'Вчера вечером мы были в собственном саду.', 'biz', 'dün — вчера; akşam — вечер; kendi — свой; bahçe — сад'],
+        ['Dün akşam ailemizin eski evinin bahçesinde yalnızdım.', 'Вчера вечером я была одна в саду старого дома нашей семьи.', 'ben', 'dün — вчера; akşam — вечер; aile — семья; eski — старый; ev — дом; bahçe — сад; yalnız — один, одинокий'],
+        ['Dün gece büyükannemin eski evinin çatı katında uyudum.', 'Прошлой ночью я спала на чердаке старого дома моей бабушки.', 'ben', 'dün — вчера; gece — ночь; büyükanne — бабушка; eski — старый; ev — дом; çatı — крыша; kat — этаж; uyumak — спать'],
+        ['Dün gece komşumun ağabeyinin odasında uyuyakaldım.', 'Прошлой ночью я уснула в комнате старшего брата моего соседа.', 'ben', 'dün — вчера; gece — ночь; komşu — сосед; ağabey — старший брат; oda — комната; uyuyakalmak — нечаянно заснуть'],
+        ['Ama sabah kendi evimde uyandım.', 'Но утром я проснулась в собственном доме.', 'ben', 'ama — но; sabah — утро; kendi — свой; ev — дом; uyanmak — просыпаться'],
+        ['Dün akşam annesinin evinde çay içtin.', 'Вчера вечером ты пил чай в доме его/её мамы.', 'sen', 'dün — вчера; akşam — вечер; anne — мама; ev — дом; çay — чай; içmek — пить'],
+        ['Dün akşam evde kitap okudun, ben de arkadaşımın kafesinde kahve içtim.', 'Вчера вечером ты дома читал книгу, а я пила кофе в кафе моего друга.', 'sen', 'dün — вчера; akşam — вечер; ev — дом; kitap — книга; okumak — читать; ben — я; de — тоже, а; arkadaş — друг; kafe — кафе; kahve — кофе; içmek — пить'],
+        ['Geçen hafta annem senin arkadaşının evindeydi, babam ise evde kitap okuyordu.', 'На прошлой неделе моя мама была в доме твоего друга, а папа читал книгу дома.', 'o', 'geçen — прошлый; hafta — неделя; anne — мама; sen — ты; arkadaş — друг; ev — дом; baba — папа; ise — а, же; kitap — книга; okumak — читать'],
+        ['Dün sabah öğretmenimizin kızı okuldaydı, ama oğlu evdeydi.', 'Вчера утром дочь нашего учителя была в школе, а его сын дома.', 'o', 'dün — вчера; sabah — утро; öğretmen — учитель; kız — дочь, девочка; okul — школа; ama — но, а; oğul — сын; ev — дом'],
+        ['Geçen pazar arkadaşımın annesi bahçede çay içti, babası ise evde kitap okudu.', 'В прошлое воскресенье мама моего друга пила чай в саду, а его папа читал книгу дома.', 'o', 'geçen — прошлый; pazar — воскресенье; arkadaş — друг; anne — мама; bahçe — сад; çay — чай; içmek — пить; baba — папа; ise — а, же; ev — дом; kitap — книга; okumak — читать'],
+        ['Dün kız kardeşin annemin evindeydi, erkek kardeşim ise senin evindeydi.', 'Вчера твоя сестра была в доме моей мамы, а мой брат — у тебя дома.', 'o', 'dün — вчера; kız — девочка; kardeş — брат или сестра; anne — мама; ev — дом; erkek — мужчина, мужской; ise — а, же; sen — ты'],
+        ['Pazartesi sabahları saat yedide eski bahçede kahve içiyorum.', 'По понедельникам в семь утра я пью кофе в старом саду.', 'ben', 'pazartesi — понедельник; sabah — утро; saat — час; yedi — семь; eski — старый; bahçe — сад; kahve — кофе; içmek — пить'],
+        ['Dün akşam saat dokuzda penceremin önünde yağmuru dinledim.', 'Вчера вечером в девять часов я слушала дождь перед своим окном.', 'ben', 'dün — вчера; akşam — вечер; saat — час; dokuz — девять; pencere — окно; ön — передняя сторона; yağmur — дождь; dinlemek — слушать'],
+        ['Salı günleri öğleden sonra küçük bir kafede kitap okuyorum.', 'По вторникам после полудня я читаю книгу в маленьком кафе.', 'ben', 'salı — вторник; gün — день; öğle — полдень; sonra — после; küçük — маленький; bir — один; kafe — кафе; kitap — книга; okumak — читать'],
+        ['Geçen cuma saat altıda deniz kenarında uzun bir yürüyüş yaptım.', 'В прошлую пятницу в шесть часов я долго гуляла по берегу моря.', 'ben', 'geçen — прошлый; cuma — пятница; saat — час; altı — шесть; deniz — море; kenar — берег, край; uzun — длинный; bir — один; yürüyüş — прогулка; yapmak — делать'],
+        ['Çarşamba geceleri odamda eski mektupları okuyorum.', 'По средам ночью я читаю старые письма у себя в комнате.', 'ben', 'çarşamba — среда; gece — ночь; oda — комната; eski — старый; mektup — письмо; okumak — читать'],
+        ['Geçen hafta sonu annemin bahçesinde sarı yapraklar topladım.', 'В прошлые выходные я собирала жёлтые листья в саду моей мамы.', 'ben', 'geçen — прошлый; hafta — неделя; son — конец; anne — мама; bahçe — сад; sarı — жёлтый; yaprak — лист; toplamak — собирать'],
+        ['Perşembe sabahı saat sekiz buçukta eski şehrin sokaklarında yürüdüm.', 'В четверг в половине девятого утра я гуляла по улицам старого города.', 'ben', 'perşembe — четверг; sabah — утро; saat — час; sekiz — восемь; buçuk — половина; eski — старый; şehir — город; sokak — улица; yürümek — ходить пешком'],
+        ['Her pazar sabahı saat onda mutfakta taze ekmek kokusunu duyuyorum.', 'Каждое воскресенье в десять утра я чувствую на кухне запах свежего хлеба.', 'ben', 'her — каждый; pazar — воскресенье; sabah — утро; saat — час; on — десять; mutfak — кухня; taze — свежий; ekmek — хлеб; koku — запах; duymak — чувствовать, слышать'],
+        ['Dün gece saat on birde gökyüzünde parlak bir yıldız gördüm.', 'Вчера в одиннадцать вечера я увидела в небе яркую звезду.', 'ben', 'dün — вчера; gece — ночь; saat — час; on — десять; bir — один; gökyüzü — небо; parlak — яркий; yıldız — звезда; görmek — видеть'],
+        ['Cumartesi akşamları evimizin balkonunda sessizce oturuyorum.', 'По субботам вечером я тихо сижу на балконе нашего дома.', 'ben', 'cumartesi — суббота; akşam — вечер; ev — дом; balkon — балкон; sessizce — тихо; oturmak — сидеть'],
+        ['Ekim ayında parkta uzun yürüyüşler yapıyorum.', 'В октябре я подолгу гуляю в парке.', 'ben', 'ekim — октябрь; ay — месяц; park — парк; uzun — длинный; yürüyüş — прогулка; yapmak — делать'],
+        ['Geçen kasımda eski bir kitapçıda çok güzel bir şiir kitabı buldum.', 'В ноябре прошлого года я нашла в старом книжном магазине прекрасную книгу стихов.', 'ben', 'geçen — прошлый; kasım — ноябрь; eski — старый; bir — один; kitapçı — книжный магазин; çok — очень; güzel — красивый; şiir — стихотворение; kitap — книга; bulmak — находить'],
+        ['Aralık ayının başında sokaklarda ilk karı gördüm.', 'В начале декабря я увидела на улицах первый снег.', 'ben', 'aralık — декабрь; ay — месяц; baş — начало; sokak — улица; ilk — первый; kar — снег; görmek — видеть'],
+        ['Mayıs ayının ortasında annemin bahçesinde güller açıyor.', 'В середине мая в саду моей мамы цветут розы.', 'onlar', 'mayıs — май; ay — месяц; orta — середина; anne — мама; bahçe — сад; gül — роза; açmak — раскрываться, цвести'],
+        ['Ağustos ayının sonunda deniz kenarındaki küçük evimizde kaldık.', 'В конце августа мы остановились в нашем маленьком доме на берегу моря.', 'biz', 'ağustos — август; ay — месяц; son — конец; deniz — море; kenar — берег, край; küçük — маленький; ev — дом; kalmak — оставаться, останавливаться'],
+        ['Geçen yılın eylül ayında eski bir şehirde üç gün geçirdim.', 'В сентябре прошлого года я провела три дня в старом городе.', 'ben', 'geçen — прошлый; yıl — год; eylül — сентябрь; ay — месяц; eski — старый; bir — один; şehir — город; üç — три; gün — день; geçirmek — проводить'],
+        ['Gelecek yılın nisan ayında küçük bahçemizde yeni çiçekler açıyor.', 'В апреле следующего года в нашем маленьком саду зацветут новые цветы.', 'onlar', 'gelecek — будущий; yıl — год; nisan — апрель; ay — месяц; küçük — маленький; bahçe — сад; yeni — новый; çiçek — цветок; açmak — раскрываться, цвести'],
+        ['Günün başında penceremi açıyorum ve serin sabah havasını içime çekiyorum.', 'В начале дня я открываю окно и вдыхаю прохладный утренний воздух.', 'ben', 'gün — день; baş — начало; pencere — окно; açmak — открывать; ve — и; serin — прохладный; sabah — утро; hava — воздух; iç — внутренняя часть; çekmek — тянуть, втягивать'],
+        ['Günün ortasında eski bir ağacın gölgesinde biraz dinleniyorum.', 'В середине дня я немного отдыхаю в тени старого дерева.', 'ben', 'gün — день; orta — середина; eski — старый; bir — один; ağaç — дерево; gölge — тень; biraz — немного; dinlenmek — отдыхать'],
+        ['Günün sonunda masamda duran deftere birkaç cümle yazıyorum.', 'В конце дня я записываю несколько предложений в тетрадь, которая лежит на моём столе.', 'ben', 'gün — день; son — конец; masa — стол; durmak — стоять, находиться; defter — тетрадь; birkaç — несколько; cümle — предложение; yazmak — писать'],
+        ['İki gün önce saat dörtte eski bir müzede unutulmuş bir tablo gördüm.', 'Два дня назад в четыре часа я увидела забытую картину в старом музее.', 'ben', 'iki — два; gün — день; önce — назад; saat — час; dört — четыре; eski — старый; bir — один; müze — музей; unutulmak — быть забытым; tablo — картина; görmek — видеть'],
+        ['Üç gün önce yağmurlu bir akşamda çocukluğumun sokaklarını hatırladım.', 'Три дня назад, в дождливый вечер, я вспомнила улицы своего детства.', 'ben', 'üç — три; gün — день; önce — назад; yağmurlu — дождливый; bir — один; akşam — вечер; çocukluk — детство; sokak — улица; hatırlamak — вспоминать'],
+        ['Beş gün önce annemin evinde eski fotoğraflara baktım.', 'Пять дней назад я рассматривала старые фотографии в доме моей мамы.', 'ben', 'beş — пять; gün — день; önce — назад; anne — мама; ev — дом; eski — старый; fotoğraf — фотография; bakmak — смотреть'],
+        ['İki gün sonra, pazartesi sabahı saat dokuzda, küçük bir kafede buluşuyoruz.', 'Через два дня, в понедельник в девять утра, мы встречаемся в маленьком кафе.', 'biz', 'iki — два; gün — день; sonra — через, после; pazartesi — понедельник; sabah — утро; saat — час; dokuz — девять; küçük — маленький; bir — один; kafe — кафе; buluşmak — встречаться'],
+        ['Üç gün sonra, çarşamba akşamı saat yedide, eski tiyatroda bir oyun izliyoruz.', 'Через три дня, в среду в семь вечера, мы смотрим спектакль в старом театре.', 'biz', 'üç — три; gün — день; sonra — через, после; çarşamba — среда; akşam — вечер; saat — час; yedi — семь; eski — старый; tiyatro — театр; bir — один; oyun — спектакль, пьеса; izlemek — смотреть'],
+        ['Yarın sabah saat altıda deniz kenarında güneşin doğuşunu izliyorum.', 'Завтра в шесть утра я буду смотреть на восход солнца на берегу моря.', 'ben', 'yarın — завтра; sabah — утро; saat — час; altı — шесть; deniz — море; kenar — берег, край; güneş — солнце; doğuş — восход; izlemek — смотреть'],
+        ['Bir hafta sonra, kasım ayının sonunda, eski evimizin bahçesinde yeniden buluşuyoruz.', 'Через неделю, в конце ноября, мы снова встречаемся в саду нашего старого дома.', 'biz', 'bir — один; hafta — неделя; sonra — через, после; kasım — ноябрь; ay — месяц; son — конец; eski — старый; ev — дом; bahçe — сад; yeniden — снова; buluşmak — встречаться'],
+        ['Yıllar önce bu sokakta küçük bir kız yürüyordu; şimdi aynı sokakta kendi çocuğumla yürüyorum.', 'Много лет назад по этой улице шла маленькая девочка. Теперь я иду по той же улице со своим ребёнком.', 'ben', 'yıl — год; önce — назад; bu — этот; sokak — улица; küçük — маленький; bir — один; kız — девочка; yürümek — ходить пешком; şimdi — сейчас; aynı — тот же; kendi — свой; çocuk — ребёнок'],
+        ['Üç gün sonra, cuma gecesi saat on ikide, eski evin penceresinde hâlâ bir ışık yanıyor.', 'Через три дня, в пятницу в полночь, в окне старого дома всё ещё горит свет.', 'o', 'üç — три; gün — день; sonra — через, после; cuma — пятница; gece — ночь; saat — час; on — десять; iki — два; eski — старый; ev — дом; pencere — окно; hâlâ — всё ещё; bir — один; ışık — свет; yanmak — гореть'],
+        ['Geçen sonbaharın sonunda, yağmurlu bir pazar akşamı saat sekizde, eski bir kitabın arasında yıllar önce yazdığım küçük bir not buldum.', 'В конце прошлой осени, в дождливый воскресный вечер в восемь часов, я нашла между страницами старой книги маленькую записку, которую написала много лет назад.', 'ben', 'geçen — прошлый; sonbahar — осень; son — конец; yağmurlu — дождливый; bir — один; pazar — воскресенье; akşam — вечер; saat — час; sekiz — восемь; eski — старый; kitap — книга; ara — промежуток; yıl — год; önce — назад; yazmak — писать; küçük — маленький; not — записка; bulmak — находить']
+      ];
+
+      const locativeTenseTasks = oralTranslationTasks(locativeTenseRows, 'locative-tenses', 'LOC-T');
 
       const pastRows = [
         ['Bir gün üniversitemizin otobüsünün arka koltuğunda uyuyakaldım ve son durakta uyandım.', 'Однажды я заснул на заднем сиденье автобуса нашего университета и проснулся на конечной остановке.', 'ben', 'bir — один; gün — день; üniversite — университет; otobüs — автобус; arka — задний; koltuk — сиденье; uyuyakalmak — заснуть нечаянно; ve — и; son — последний; durak — остановка; uyanmak — просыпаться'],
@@ -1521,8 +1581,8 @@
         state.index = 0;
         render();
       }
-      function loadPastTasks() {
-        const available = pastTasks.filter(task => state.translationDirection === 'mixed' || task.direction === state.translationDirection);
+      function loadTranslationTasks(deck) {
+        const available = deck.filter(task => state.translationDirection === 'mixed' || task.direction === state.translationDirection);
         state.pool = available.filter(task => state.person === 'all' || task.person === state.person);
         if (!state.pool.length) {
           state.person = 'all';
@@ -1538,8 +1598,12 @@
         render();
       }
       function rebuildPool(reset = true) {
+        if (state.mode === 'locative-tenses') {
+          loadTranslationTasks(locativeTenseTasks);
+          return;
+        }
         if (state.mode === 'past') {
-          loadPastTasks();
+          loadTranslationTasks(pastTasks);
           return;
         }
         if (state.mode === 'locative') {
@@ -1585,7 +1649,7 @@
         const task = current();
         if (!task) return;
         const oral = isOral(task);
-        const translation = task.locative || task.past;
+        const translation = task.oralTranslation || task.past;
         els.answer = task.past ? els.sentenceAnswer : els.shortAnswer;
         els.shortAnswer.hidden = Boolean(task.past);
         els.sentenceAnswer.hidden = !task.past;
@@ -1624,7 +1688,7 @@
           ? oral
             ? 'Переведи <strong>устно</strong> и нажми <strong>«Проверить»</strong>.'
             : 'Напиши перевод и нажми <strong>«Проверить»</strong>, чтобы сравнить с образцом. Турецкие буквы можно заменять английскими.'
-          : task.locative
+          : task.oralTranslation
           ? 'Переведи <strong>устно</strong> и нажми <strong>«Проверить»</strong>. В подсказке — только слова в начальной форме.'
           : task.oral
           ? 'Составь предложение <strong>устно</strong>, затем нажми <strong>«Проверить»</strong> — здесь появится правильный ответ.'
@@ -1773,7 +1837,7 @@
 
       function showHint() {
         const task = current();
-        if (task.locative || task.past) {
+        if (task.oralTranslation || task.past) {
           els.feedback.className = 'feedback hint';
           els.feedback.textContent = task.vocabulary;
           if (task.past && !isOral(task)) state.reviewingHint = state.checked;
@@ -1839,7 +1903,7 @@
           els.person.textContent = 'ALL PERSONS';
         }
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', genitive: 'genitive', locative: 'locative', past: 'past-tense', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
+        const names = { all: 'all', game: 'best-game', ability: 'can-cannot', possession: 'possession', 'possession-plural': 'possession-plural', 'possession-textbook': 'possession-textbook', genitive: 'genitive', locative: 'locative', 'locative-tenses': 'locative-tenses', past: 'past-tense', nominal: 'nominal', question: 'questions', negative: 'negative', yor: 'present-yor' };
         els.crumb.textContent = names[mode];
         els.category.textContent = mode === 'game'
           ? 'BEST GAME'
@@ -1902,6 +1966,7 @@
 
       buildPersonButtons();
       $('#count-locative').textContent = locativeTasks.length;
+      $('#count-locative-tenses').textContent = locativeTenseTasks.length;
       $('#count-past').textContent = pastTasks.length;
       ['all','nominal','question','negative','yor'].forEach(mode => {
         const count = mode === 'all' ? tasks.length : tasks.filter(task => task.tags.includes(mode)).length;
